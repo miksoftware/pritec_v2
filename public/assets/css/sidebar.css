@@ -1,0 +1,217 @@
+/* Sidebar Styles - Pritec v2.0 */
+
+/* Sidebar principal */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    background: linear-gradient(180deg, var(--primary-color) 0%, #34495e 100%);
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1001;
+    overflow-y: auto;
+    overflow-x: hidden; /* Evitar scroll horizontal */
+}
+
+/* Sidebar colapsado */
+.sidebar.collapsed {
+    width: 70px;
+}
+
+.sidebar.collapsed .sidebar-text {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-header {
+    padding: 1rem 0.5rem;
+}
+
+.sidebar.collapsed .sidebar-nav-link {
+    justify-content: center;
+    padding: 0.75rem;
+}
+
+.sidebar.collapsed .sidebar-nav-link i {
+    margin-right: 0;
+}
+
+.sidebar.collapsed .sidebar-user {
+    padding: 0.5rem;
+}
+
+.sidebar.collapsed .sidebar-user-details {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-user-avatar {
+    margin-right: 0;
+}
+
+/* Header del sidebar */
+.sidebar-header {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.sidebar-header .text-muted {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7) !important;
+}
+
+/* Navegación del sidebar */
+.sidebar-nav {
+    padding: 1rem 0;
+}
+
+.sidebar-nav-item {
+    margin: 0.25rem 0;
+}
+
+.sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    background: none;
+}
+
+.sidebar-nav-link:hover,
+.sidebar-nav-link.active {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    transform: translateX(5px);
+}
+
+.sidebar-nav-link i {
+    width: 20px;
+    margin-right: 10px;
+    text-align: center;
+}
+
+/* Botón toggle del sidebar */
+.sidebar-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 5px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Main wrapper */
+.main-wrapper {
+    margin-left: 260px;
+    transition: all 0.3s ease;
+    min-height: 100vh;
+}
+
+.main-wrapper.expanded {
+    margin-left: 70px;
+}
+
+/* Content areas */
+.content-header {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e0e6ed;
+    margin-bottom: 0;
+}
+
+.content-body {
+    padding: 2rem;
+}
+
+/* Usuario en sidebar */
+.sidebar-user {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+}
+
+.sidebar-user-info {
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+.sidebar-user-avatar {
+    width: 35px;
+    height: 35px;
+    background: var(--secondary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.sidebar-user-details h6 {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.sidebar-user-details small {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.75rem;
+}
+
+/* Mobile toggle */
+.mobile-toggle {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 260px;
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .main-wrapper {
+        margin-left: 0;
+    }
+    
+    .main-wrapper.expanded {
+        margin-left: 0;
+    }
+    
+    .mobile-toggle {
+        display: block !important;
+    }
+    
+    .content-header {
+        padding: 1rem;
+    }
+    
+    .content-body {
+        padding: 1rem;
+    }
+}
