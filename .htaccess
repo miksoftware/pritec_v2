@@ -1,0 +1,85 @@
+# Pritec v2.0 - Configuración de Apache
+
+# Habilitar el motor de reescritura
+RewriteEngine On
+
+# Bloquear acceso a archivos sensibles
+<Files ~ "\.(env|log|sql|json|lock)$">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Bloquear acceso a directorios del sistema
+RewriteRule ^(app|config|database)/ - [F,L]
+
+# Redireccionar todas las peticiones al index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    # Prevenir clickjacking
+    Header always append X-Frame-Options SAMEORIGIN
+    
+    # Prevenir MIME type sniffing
+    Header always set X-Content-Type-Options nosniff
+    
+    # Habilitar XSS protection
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Política de referrer
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Política de permisos
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Compresión GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+
+# Cache para recursos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/ico "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>
+
+# PHP settings
+<IfModule mod_php.c>
+    # Ocultar versión de PHP
+    php_flag expose_php off
+    
+    # Configurar timezone
+    php_value date.timezone "America/Mexico_City"
+    
+    # Límites de memoria y tiempo
+    php_value memory_limit 256M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+    
+    # Configurar uploads
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    
+    # Configurar sesiones
+    php_value session.cookie_httponly 1
+    php_value session.cookie_secure 0
+    php_value session.use_strict_mode 1
+</IfModule>

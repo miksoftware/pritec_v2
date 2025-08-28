@@ -1,0 +1,121 @@
+/* Estilos personalizados para Pritec v2.0 */
+
+/* Variables CSS adicionales */
+:root {
+    --border-radius: 8px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Reset para páginas de autenticación */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+/* Asegurar que auth-container ocupe toda la pantalla */
+.auth-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Utilidades */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.pulse-hover:hover {
+    animation: pulse 0.3s ease-in-out;
+}
+
+/* Mejoras en componentes */
+.card {
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn {
+    transition: var(--transition);
+}
+
+.form-control {
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    transform: translateY(-1px);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .auth-card {
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .auth-body {
+        padding: 1.5rem;
+    }
+    
+    .main-content {
+        padding: 1rem 0;
+    }
+    
+    /* En móviles, hacer el registro de una sola columna */
+    .auth-container .row .col-md-6 {
+        margin-bottom: 0;
+    }
+}
+
+/* Dark mode support (preparado para futuro) */
+@media (prefers-color-scheme: dark) {
+    /* Estilos para modo oscuro cuando se implemente */
+}
+
+/* Print styles */
+@media print {
+    .navbar, .btn, .card-header {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+}
