@@ -6,7 +6,6 @@
     
     <div class="sidebar-header">
         <h3>
-            <i class="fas fa-clipboard-check me-2"></i>
             <span class="sidebar-text">Pritec v2.0</span>
         </h3>
         <p class="text-muted mb-0">
@@ -19,6 +18,13 @@
             <a href="<?= APP_URL ?>dashboard" class="sidebar-nav-link <?= (strpos($_SERVER['REQUEST_URI'], 'dashboard') !== false) ? 'active' : '' ?>">
                 <i class="fas fa-tachometer-alt"></i>
                 <span class="sidebar-text">Dashboard</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-nav-item">
+            <a href="<?= APP_URL ?>users" class="sidebar-nav-link <?= (strpos($_SERVER['REQUEST_URI'], 'users') !== false) ? 'active' : '' ?>">
+                <i class="fas fa-users"></i>
+                <span class="sidebar-text">Usuarios</span>
             </a>
         </div>
         

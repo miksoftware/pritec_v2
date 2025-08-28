@@ -1,5 +1,7 @@
 <?php
 
+require_once APP_PATH . '/config/database.php';
+
 class Model {
     protected $db;
     protected $table;

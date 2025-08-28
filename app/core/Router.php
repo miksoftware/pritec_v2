@@ -38,6 +38,10 @@ class Router {
     }
     
     public function dispatch() {
+        // Debug temporal - remover después
+        error_log("Current route: " . $this->currentRoute);
+        error_log("Registered routes: " . print_r(array_keys($this->routes), true));
+        
         // Buscar ruta exacta
         if (isset($this->routes[$this->currentRoute])) {
             return $this->executeCallback($this->routes[$this->currentRoute]);
@@ -75,7 +79,9 @@ class Router {
                     $instance = new $controller();
                     
                     if (method_exists($instance, $method)) {
-                        return $instance->$method();
+                        // Extraer parámetros de la ruta
+                        $params = $this->extractParams();
+                        return call_user_func_array([$instance, $method], $params);
                     }
                 }
             }
@@ -84,6 +90,22 @@ class Router {
         }
         
         $this->notFound();
+    }
+    
+    private function extractParams() {
+        // Buscar la ruta coincidente y extraer parámetros
+        foreach ($this->routes as $route => $callback) {
+            if ($this->matchRoute($route)) {
+                $routePattern = preg_replace('/\{[a-zA-Z0-9_]+\}/', '([a-zA-Z0-9_]+)', $route);
+                $routePattern = str_replace('/', '\/', $routePattern);
+                
+                if (preg_match('/^' . $routePattern . '$/', $this->currentRoute, $matches)) {
+                    array_shift($matches); // Remover la coincidencia completa
+                    return $matches;
+                }
+            }
+        }
+        return [];
     }
     
     private function notFound() {

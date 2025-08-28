@@ -9,6 +9,14 @@ require_once __DIR__ . '/app/core/Router.php';
 require_once __DIR__ . '/app/core/Controller.php';
 require_once __DIR__ . '/app/core/Model.php';
 
+// Incluir modelos
+require_once __DIR__ . '/app/models/User.php';
+
+// Incluir controladores
+require_once __DIR__ . '/app/controllers/AuthController.php';
+require_once __DIR__ . '/app/controllers/DashboardController.php';
+require_once __DIR__ . '/app/controllers/UserController.php';
+
 // Crear instancia del router
 $router = new Router();
 
@@ -34,6 +42,15 @@ $router->get('/auth/check', 'AuthController@checkAuth');
 
 // Rutas del dashboard
 $router->get('/dashboard', 'DashboardController@index');
+
+// Rutas CRUD de usuarios
+$router->get('/users', 'UserController@index');
+$router->get('/users/create', 'UserController@create');
+$router->post('/users/store', 'UserController@store');
+$router->get('/users/edit/{id}', 'UserController@edit');
+$router->post('/users/update/{id}', 'UserController@update');
+$router->post('/users/delete/{id}', 'UserController@delete');
+$router->post('/users/toggle-status/{id}', 'UserController@toggleStatus');
 
 // Procesar la ruta actual
 $router->dispatch();

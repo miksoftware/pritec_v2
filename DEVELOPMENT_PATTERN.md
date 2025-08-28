@@ -17,7 +17,8 @@ pritec_v2/
 │   │
 │   ├── controllers/    # Controladores de la aplicación
 │   │   ├── AuthController.php    # Autenticación
-│   │   └── DashboardController.php # Dashboard
+│   │   ├── DashboardController.php # Dashboard
+│   │   └── UserController.php    # 🆕 CRUD de usuarios
 │   │
 │   ├── models/         # Modelos de datos
 │   │   └── User.php    # Modelo de usuario
@@ -33,6 +34,11 @@ pritec_v2/
 │       │   ├── login.php
 │       │   └── register.php
 │       │
+│       ├── users/      # 🆕 Vistas CRUD de usuarios
+│       │   ├── index.php   # Listado de usuarios
+│       │   ├── create.php  # Crear usuario
+│       │   └── edit.php    # Editar usuario
+│       │
 │       └── dashboard/  # Vistas del dashboard
 │           └── index.php
 │
@@ -43,7 +49,8 @@ pritec_v2/
 │       ├── css/       # Hojas de estilo
 │       │   ├── style.css    # Estilos principales
 │       │   ├── sidebar.css  # Estilos del sidebar
-│       │   └── main.css     # Estilos globales
+│       │   ├── main.css     # Estilos globales
+│       │   └── users.css    # 🆕 Estilos del CRUD usuarios
 │       │
 │       └── js/        # Scripts JavaScript
 │           ├── app.js       # Funciones principales
