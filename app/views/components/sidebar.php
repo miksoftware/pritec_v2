@@ -29,6 +29,13 @@
         </div>
         
         <div class="sidebar-nav-item">
+            <a href="<?= APP_URL ?>vehicle-types" class="sidebar-nav-link <?= (strpos($_SERVER['REQUEST_URI'], 'vehicle-types') !== false) ? 'active' : '' ?>">
+                <i class="fas fa-car"></i>
+                <span class="sidebar-text">Tipos de Vehículos</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-nav-item">
             <a href="#" class="sidebar-nav-link" onclick="showComingSoon('Peritajes')">
                 <i class="fas fa-clipboard-check"></i>
                 <span class="sidebar-text">Peritajes</span>

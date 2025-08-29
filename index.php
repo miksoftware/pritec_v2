@@ -52,5 +52,28 @@ $router->post('/users/update/{id}', 'UserController@update');
 $router->post('/users/delete/{id}', 'UserController@delete');
 $router->post('/users/toggle-status/{id}', 'UserController@toggleStatus');
 
+// Rutas CRUD de tipos de vehículos
+$router->get('/vehicle-types', 'VehicleTypeController@index');
+$router->get('/vehicle-types/create', 'VehicleTypeController@create');
+$router->post('/vehicle-types/store', 'VehicleTypeController@store');
+$router->get('/vehicle-types/{id}/edit', 'VehicleTypeController@edit');
+$router->post('/vehicle-types/update', 'VehicleTypeController@update');
+$router->post('/vehicle-types/delete', 'VehicleTypeController@delete');
+$router->post('/vehicle-types/toggle-status', 'VehicleTypeController@toggleStatus');
+
+// Rutas de secciones
+$router->get('/vehicle-types/{id}/sections', 'VehicleTypeController@sections');
+$router->post('/vehicle-types/create-sections', 'VehicleTypeController@createSections');
+$router->post('/vehicle-types/upload-section-image', 'VehicleTypeController@uploadSectionImage');
+$router->get('/vehicle-types/section/{id}', 'VehicleTypeController@section');
+
+// Rutas de piezas
+$router->get('/vehicle-types/section/{id}/pieces', 'VehicleTypeController@pieces');
+$router->post('/vehicle-types/add-piece', 'VehicleTypeController@addPiece');
+$router->post('/vehicle-types/update-piece', 'VehicleTypeController@updatePiece');
+$router->post('/vehicle-types/update-piece-position', 'VehicleTypeController@updatePiecePosition');
+$router->post('/vehicle-types/delete-piece', 'VehicleTypeController@deletePiece');
+$router->post('/vehicle-types/clear-pieces', 'VehicleTypeController@clearPieces');
+
 // Procesar la ruta actual
 $router->dispatch();
