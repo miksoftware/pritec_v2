@@ -19,24 +19,6 @@
     </div>
 </div>
 
-<!-- Step Indicator -->
-<div class="step-indicator mb-4">
-    <div class="step completed">
-        <div class="step-number">✓</div>
-        <span>Información Básica</span>
-    </div>
-    <div class="step-connector"></div>
-    <div class="step active">
-        <div class="step-number">2</div>
-        <span>Configurar Secciones</span>
-    </div>
-    <div class="step-connector"></div>
-    <div class="step">
-        <div class="step-number">3</div>
-        <span>Definir Piezas</span>
-    </div>
-</div>
-
 <!-- Content Body -->
 <div class="content-body">
     <div class="row">
