@@ -41,8 +41,8 @@ body {
 
 .auth-card {
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     width: 100%;
     max-width: 600px;
@@ -51,27 +51,27 @@ body {
 .auth-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
-    padding: 2rem;
+    padding: 1.5rem;
     text-align: center;
 }
 
 .auth-body {
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
 /* ===================================
    FORMULARIOS
    =================================== */
 .form-control {
-    border-radius: 10px;
+    border-radius: 6px;
     border: 1px solid #e0e6ed;
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
 }
 
 .form-control:focus {
     border-color: var(--secondary-color);
-    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    box-shadow: 0 0 0 0.1rem rgba(52, 152, 219, 0.15);
 }
 
 /* ===================================
@@ -80,15 +80,16 @@ body {
 .btn-primary {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     border: none;
-    border-radius: 10px;
-    padding: 12px 24px;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3);
 }
 
 /* ===================================
@@ -120,15 +121,15 @@ body {
    TARJETAS
    =================================== */
 .card {
-    border-radius: 15px;
+    border-radius: 8px;
     border: none;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .card-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
-    border-radius: 15px 15px 0 0 !important;
+    border-radius: 8px 8px 0 0 !important;
     border: none;
 }
 

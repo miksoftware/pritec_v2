@@ -51,19 +51,19 @@
 
 /* Header del sidebar */
 .sidebar-header {
-    padding: 1.5rem 1rem;
+    padding: 1.25rem 1rem;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     text-align: center;
 }
 
 .sidebar-header h3 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
 }
 
 .sidebar-header .text-muted {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: rgba(255,255,255,0.7) !important;
 }
 
@@ -79,19 +79,20 @@
 .sidebar-nav-link {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1.5rem;
+    padding: 0.625rem 1.25rem;
     color: rgba(255,255,255,0.8);
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     border: none;
     background: none;
+    font-size: 0.875rem;
 }
 
 .sidebar-nav-link:hover,
 .sidebar-nav-link.active {
     background: rgba(255,255,255,0.1);
     color: white;
-    transform: translateX(5px);
+    transform: translateX(3px);
 }
 
 .sidebar-nav-link i {
@@ -103,15 +104,16 @@
 /* Botón toggle del sidebar */
 .sidebar-toggle {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: 12px;
+    right: 12px;
     background: rgba(255,255,255,0.2);
     border: none;
     color: white;
-    padding: 5px 8px;
+    padding: 4px 6px;
     border-radius: 3px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
 }
 
 .sidebar-toggle:hover {
@@ -132,13 +134,13 @@
 /* Content areas */
 .content-header {
     background: white;
-    padding: 1.5rem 2rem;
+    padding: 1.25rem 1.5rem;
     border-bottom: 1px solid #e0e6ed;
     margin-bottom: 0;
 }
 
 .content-body {
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
 /* Usuario en sidebar */
@@ -146,7 +148,7 @@
     position: absolute;
     bottom: 0;
     width: 100%;
-    padding: 1rem;
+    padding: 0.875rem;
     border-top: 1px solid rgba(255,255,255,0.1);
     background: rgba(0,0,0,0.2);
 }
@@ -158,25 +160,26 @@
 }
 
 .sidebar-user-avatar {
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
     background: var(--secondary-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 10px;
+    margin-right: 8px;
     font-weight: bold;
+    font-size: 0.875rem;
 }
 
 .sidebar-user-details h6 {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .sidebar-user-details small {
     color: rgba(255,255,255,0.7);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
 }
 
 /* Mobile toggle */

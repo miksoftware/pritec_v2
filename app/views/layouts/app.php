@@ -18,6 +18,7 @@
     <link href="<?= ASSETS_URL ?>css/style.css" rel="stylesheet">
     <link href="<?= ASSETS_URL ?>css/sidebar.css" rel="stylesheet">
     <link href="<?= ASSETS_URL ?>css/main.css" rel="stylesheet">
+    <link href="<?= ASSETS_URL ?>css/minimal-override.css" rel="stylesheet">
 </head>
 <body>
     <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']): ?>
