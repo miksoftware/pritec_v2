@@ -43,8 +43,8 @@
         </div>
         
         <div class="sidebar-nav-item">
-            <a href="#" class="sidebar-nav-link" onclick="showComingSoon('Clientes')">
-                <i class="fas fa-users"></i>
+            <a href="<?= APP_URL ?>clients" class="sidebar-nav-link <?= (strpos($_SERVER['REQUEST_URI'], 'clients') !== false) ? 'active' : '' ?>">
+                <i class="fas fa-user-friends"></i>
                 <span class="sidebar-text">Clientes</span>
             </a>
         </div>

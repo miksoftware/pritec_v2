@@ -11,11 +11,15 @@ require_once __DIR__ . '/app/core/Model.php';
 
 // Incluir modelos
 require_once __DIR__ . '/app/models/User.php';
+require_once __DIR__ . '/app/models/VehicleType.php';
+require_once __DIR__ . '/app/models/Client.php';
 
 // Incluir controladores
 require_once __DIR__ . '/app/controllers/AuthController.php';
 require_once __DIR__ . '/app/controllers/DashboardController.php';
 require_once __DIR__ . '/app/controllers/UserController.php';
+require_once __DIR__ . '/app/controllers/VehicleTypeController.php';
+require_once __DIR__ . '/app/controllers/ClientController.php';
 
 // Crear instancia del router
 $router = new Router();
@@ -74,6 +78,19 @@ $router->post('/vehicle-types/update-piece', 'VehicleTypeController@updatePiece'
 $router->post('/vehicle-types/update-piece-position', 'VehicleTypeController@updatePiecePosition');
 $router->post('/vehicle-types/delete-piece', 'VehicleTypeController@deletePiece');
 $router->post('/vehicle-types/clear-pieces', 'VehicleTypeController@clearPieces');
+
+// Rutas CRUD de clientes
+$router->get('/clients', 'ClientController@index');
+$router->get('/clients/create', 'ClientController@create');
+$router->post('/clients/store', 'ClientController@store');
+$router->get('/clients/show/{id}', 'ClientController@show');
+$router->get('/clients/edit/{id}', 'ClientController@edit');
+$router->post('/clients/update/{id}', 'ClientController@update');
+$router->post('/clients/destroy/{id}', 'ClientController@destroy');
+$router->post('/clients/activate/{id}', 'ClientController@activate');
+$router->get('/clients/search', 'ClientController@search');
+$router->get('/clients/stats', 'ClientController@stats');
+$router->get('/clients/export', 'ClientController@export');
 
 // Procesar la ruta actual
 $router->dispatch();
