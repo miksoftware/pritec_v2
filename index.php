@@ -9,6 +9,9 @@ require_once __DIR__ . '/app/core/Router.php';
 require_once __DIR__ . '/app/core/Controller.php';
 require_once __DIR__ . '/app/core/Model.php';
 
+// Incluir helpers y autoloader
+require_once __DIR__ . '/app/helpers/autoload.php';
+
 // Incluir modelos
 require_once __DIR__ . '/app/models/User.php';
 require_once __DIR__ . '/app/models/VehicleType.php';

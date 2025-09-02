@@ -2,22 +2,28 @@
 
 <link href="<?= ASSETS_URL ?>css/clients.css" rel="stylesheet">
 
-<!-- Content Header -->
-<div class="content-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-user-plus me-2"></i>
-                Nuevo Cliente
-            </h1>
-            <p class="text-muted mb-0">Completa la información del nuevo cliente</p>
-        </div>
-        <a href="<?= APP_URL ?>clients" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>
-            Volver a Clientes
-        </a>
-    </div>
-</div>
+<?php
+// Asegurar que los helpers estén cargados
+if (!function_exists('renderContentHeader')) {
+    require_once APP_PATH . '/helpers/view_helpers.php';
+}
+
+// Configurar el header de contenido
+renderContentHeader('Nuevo Cliente', [
+    'subtitle' => 'Completa la información del nuevo cliente',
+    'icon' => 'fas fa-user-plus',
+    'breadcrumbs' => createBreadcrumbs([
+        ['text' => 'Clientes', 'url' => APP_URL . 'clients'],
+        ['text' => 'Nuevo Cliente', 'url' => null]
+    ]),
+    'actions' => [
+        createHeaderAction('Volver a Clientes', APP_URL . 'clients', [
+            'icon' => 'fas fa-arrow-left',
+            'class' => 'btn-outline-secondary'
+        ])
+    ]
+]);
+?>
 
 <!-- Client Form -->
 <div class="row justify-content-center">
