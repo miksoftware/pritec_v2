@@ -11,19 +11,30 @@ class PieceEditor {
         this.existingPieces = [];
         this.imageContainer = null;
         this.sectionImage = null;
+        this.resizeObserver = null;
+        this.resizeTimeout = null;
+        this.imageResizeTimeout = null;
         
         // Bind methods
         this.handleImageClick = this.handleImageClick.bind(this);
         this.handlePieceClick = this.handlePieceClick.bind(this);
+        this.handleWindowResize = this.handleWindowResize.bind(this);
     }
 
     /**
      * Inicializar el editor
      */
     init(pieces = []) {
+        console.log('PieceEditor.init called with pieces:', pieces);
+        
         this.existingPieces = pieces;
         this.imageContainer = document.getElementById('imageWrapper');
         this.sectionImage = document.getElementById('sectionImage');
+        
+        console.log('Elements found:', {
+            imageContainer: !!this.imageContainer,
+            sectionImage: !!this.sectionImage
+        });
         
         if (!this.imageContainer || !this.sectionImage) {
             console.warn('Elementos del editor no encontrados');
@@ -73,6 +84,21 @@ class PieceEditor {
                 this.updateTempMarker(e.target.value);
             });
         }
+
+        // Event listener para resize de ventana
+        window.addEventListener('resize', this.handleWindowResize);
+
+        // Observer para cambios en el tamaño de la imagen
+        if (window.ResizeObserver) {
+            this.resizeObserver = new ResizeObserver((entries) => {
+                for (let entry of entries) {
+                    if (entry.target === this.sectionImage) {
+                        this.handleImageResize();
+                    }
+                }
+            });
+            this.resizeObserver.observe(this.sectionImage);
+        }
     }
 
     /**
@@ -85,9 +111,6 @@ class PieceEditor {
         if (event.target !== this.sectionImage && event.target !== this.imageContainer) {
             return;
         }
-
-        // Mostrar panel de agregar pieza
-        this.showAddPiecePanel();
 
         // Obtener coordenadas relativas al contenedor de la imagen
         const rect = this.imageContainer.getBoundingClientRect();
@@ -114,6 +137,15 @@ class PieceEditor {
         
         const dbX = Math.round(imageX * scaleX);
         const dbY = Math.round(imageY * scaleY);
+
+        // Si hay una pieza seleccionada, mover la pieza a la nueva posición
+        if (this.selectedPieceId) {
+            this.movePieceToPosition(this.selectedPieceId, x, y, dbX, dbY);
+            return;
+        }
+
+        // Si no hay pieza seleccionada, mostrar panel de agregar pieza
+        this.showAddPiecePanel();
 
         // Guardar coordenadas en los campos del formulario
         this.setFormPosition(dbX, dbY);
@@ -168,6 +200,71 @@ class PieceEditor {
     }
 
     /**
+     * Mover pieza seleccionada a nueva posición
+     */
+    movePieceToPosition(pieceId, visualX, visualY, dbX, dbY) {
+        // Buscar el marcador de la pieza
+        const marker = this.imageContainer.querySelector(`[data-piece-id="${pieceId}"]`);
+        if (!marker) return;
+
+        // Mover el marcador visualmente
+        marker.style.left = visualX + 'px';
+        marker.style.top = visualY + 'px';
+
+        // Actualizar las coordenadas en el formulario de edición
+        const editPositionXField = document.getElementById('editPositionX');
+        const editPositionYField = document.getElementById('editPositionY');
+        const displayPositionXField = document.getElementById('displayPositionX');
+        const displayPositionYField = document.getElementById('displayPositionY');
+
+        if (editPositionXField) editPositionXField.value = dbX;
+        if (editPositionYField) editPositionYField.value = dbY;
+        if (displayPositionXField) displayPositionXField.value = dbX;
+        if (displayPositionYField) displayPositionYField.value = dbY;
+
+        // Actualizar la posición en la base de datos
+        const formData = new FormData();
+        formData.append(window.CSRF_TOKEN_NAME || 'csrf_token', window.CSRF_TOKEN || '');
+        formData.append('piece_id', pieceId);
+        formData.append('position_x', dbX);
+        formData.append('position_y', dbY);
+
+        fetch(`${window.APP_URL}vehicle-types/update-piece-position`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar datos locales
+                const piece = this.existingPieces.find(p => p.id == pieceId);
+                if (piece) {
+                    piece.position_x = dbX;
+                    piece.position_y = dbY;
+                }
+                
+                // Mostrar feedback visual temporal
+                marker.style.transform = 'translate(-50%, -50%) scale(1.2)';
+                setTimeout(() => {
+                    marker.style.transform = 'translate(-50%, -50%) scale(1)';
+                }, 200);
+                
+                console.log('Posición actualizada mediante clic:', { pieceId, dbX, dbY });
+            } else {
+                window.showNotification?.('error', data.message || 'Error al actualizar posición');
+                // Revertir posición visual si falla
+                this.renderExistingPieces();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            window.showNotification?.('error', 'Error al actualizar la posición');
+            // Revertir posición visual si falla
+            this.renderExistingPieces();
+        });
+    }
+
+    /**
      * Renderizar piezas existentes
      */
     renderExistingPieces() {
@@ -181,8 +278,12 @@ class PieceEditor {
         const containerRect = this.imageContainer.getBoundingClientRect();
         
         // Calcular escala para convertir coordenadas de BD a visuales
-        const scaleX = imageRect.width / 400;
-        const scaleY = imageRect.height / 400;
+        // Considerar el zoom actual
+        const baseScaleX = imageRect.width / 400;
+        const baseScaleY = imageRect.height / 400;
+        
+        const scaleX = baseScaleX * this.zoomLevel;
+        const scaleY = baseScaleY * this.zoomLevel;
         
         // Calcular offset de la imagen dentro del contenedor
         const offsetX = imageRect.left - containerRect.left;
@@ -195,10 +296,11 @@ class PieceEditor {
             this.createPieceMarker(piece, visualX, visualY);
         });
 
-        console.log('Piezas renderizadas:', this.existingPieces.length, {
+        console.log('Piezas renderizadas con zoom:', this.existingPieces.length, {
             imageSize: { w: imageRect.width, h: imageRect.height },
             scale: { x: scaleX, y: scaleY },
-            offset: { x: offsetX, y: offsetY }
+            offset: { x: offsetX, y: offsetY },
+            zoomLevel: this.zoomLevel
         });
     }
 
@@ -439,6 +541,84 @@ class PieceEditor {
     }
 
     /**
+     * Actualizar pieza existente
+     */
+    updatePiece() {
+        const form = document.getElementById('editPieceForm');
+        const formData = new FormData(form);
+        
+        // Validar número para edición
+        const pieceNumber = formData.get('piece_number');
+        const pieceId = formData.get('piece_id');
+        
+        if (!this.validatePieceNumberForEdit(pieceNumber, pieceId)) {
+            window.showNotification?.('error', 'Por favor corrige los errores en el formulario');
+            return;
+        }
+
+        fetch(`${window.APP_URL}vehicle-types/update-piece`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.showNotification?.('success', data.message);
+                
+                // Actualizar pieza en la lista local
+                const index = this.existingPieces.findIndex(p => p.id == pieceId);
+                if (index !== -1) {
+                    this.existingPieces[index] = { ...this.existingPieces[index], ...data.piece };
+                }
+                
+                // Re-renderizar piezas
+                this.renderExistingPieces();
+                
+                // Volver al panel de agregar
+                this.deselectPiece();
+                
+            } else {
+                window.showNotification?.('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            window.showNotification?.('error', 'Error al actualizar la pieza');
+        });
+    }
+
+    /**
+     * Validar número de pieza para edición
+     */
+    validatePieceNumberForEdit(number, pieceId) {
+        const input = document.getElementById('editPieceNumber');
+        const feedback = input?.nextElementSibling;
+        
+        if (!number) {
+            input?.classList.remove('is-valid', 'is-invalid');
+            if (feedback) feedback.textContent = '';
+            return false;
+        }
+        
+        // Verificar si ya existe (excluyendo la pieza actual)
+        const exists = this.existingPieces.some(piece => 
+            piece.piece_number == number && piece.id != pieceId
+        );
+        
+        if (exists) {
+            input?.classList.remove('is-valid');
+            input?.classList.add('is-invalid');
+            if (feedback) feedback.textContent = 'Este número ya está en uso';
+            return false;
+        } else {
+            input?.classList.remove('is-invalid');
+            input?.classList.add('is-valid');
+            if (feedback) feedback.textContent = '';
+            return true;
+        }
+    }
+
+    /**
      * Seleccionar pieza
      */
     selectPiece(pieceId) {
@@ -553,7 +733,195 @@ class PieceEditor {
             this.sectionImage.style.height = (this.sectionImage.naturalHeight * scale) + 'px';
         }
     }
+
+    /**
+     * Manejar resize de ventana
+     */
+    handleWindowResize() {
+        // Debounce para evitar demasiadas llamadas
+        clearTimeout(this.resizeTimeout);
+        this.resizeTimeout = setTimeout(() => {
+            this.adjustImageSize();
+            this.renderExistingPieces();
+        }, 100);
+    }
+
+    /**
+     * Manejar resize de imagen
+     */
+    handleImageResize() {
+        // Debounce para evitar demasiadas llamadas
+        clearTimeout(this.imageResizeTimeout);
+        this.imageResizeTimeout = setTimeout(() => {
+            this.renderExistingPieces();
+        }, 50);
+    }
+
+    /**
+     * Deseleccionar pieza actual
+     */
+    deselectPiece() {
+        if (this.selectedPieceId) {
+            const marker = this.imageContainer.querySelector(`[data-piece-id="${this.selectedPieceId}"]`);
+            marker?.classList.remove('selected');
+            this.selectedPieceId = null;
+        }
+        
+        this.showAddPiecePanel();
+    }
+
+    /**
+     * Eliminar pieza actual
+     */
+    deletePiece() {
+        if (!this.selectedPieceId) return;
+        
+        const piece = this.existingPieces.find(p => p.id == this.selectedPieceId);
+        if (!piece) return;
+
+        // Confirmar eliminación
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '¿Eliminar pieza?',
+                text: `Se eliminará la pieza #${piece.piece_number}`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.executeDeletePiece();
+                }
+            });
+        } else if (confirm(`¿Estás seguro de que quieres eliminar la pieza #${piece.piece_number}?`)) {
+            this.executeDeletePiece();
+        }
+    }
+
+    /**
+     * Ejecutar eliminación de pieza
+     */
+    executeDeletePiece() {
+        const formData = new FormData();
+        formData.append(window.CSRF_TOKEN_NAME, window.CSRF_TOKEN);
+        formData.append('piece_id', this.selectedPieceId);
+        
+        fetch(window.APP_URL + 'vehicle-types/delete-piece', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.showNotification('success', data.message);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                window.showNotification('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            window.showNotification('error', 'Error al eliminar la pieza');
+        });
+    }
+
+    /**
+     * Resaltar pieza específica
+     */
+    highlightPiece(pieceId) {
+        // Remover highlights anteriores
+        this.imageContainer.querySelectorAll('.piece-marker.highlighted').forEach(marker => {
+            marker.classList.remove('highlighted');
+        });
+        
+        // Agregar highlight a la pieza seleccionada
+        const marker = this.imageContainer.querySelector(`[data-piece-id="${pieceId}"]`);
+        if (marker) {
+            marker.classList.add('highlighted');
+            
+            // Remover highlight después de 2 segundos
+            setTimeout(() => {
+                marker.classList.remove('highlighted');
+            }, 2000);
+        }
+    }
+
+    /**
+     * Controles de zoom
+     */
+    zoomIn() {
+        this.zoomLevel = Math.min(this.zoomLevel * 1.2, 3);
+        this.applyZoom();
+    }
+
+    zoomOut() {
+        this.zoomLevel = Math.max(this.zoomLevel / 1.2, 0.5);
+        this.applyZoom();
+    }
+
+    resetZoom() {
+        this.zoomLevel = 1;
+        this.applyZoom();
+    }
+
+    applyZoom() {
+        if (this.sectionImage) {
+            this.sectionImage.style.transform = `scale(${this.zoomLevel})`;
+            this.sectionImage.style.transformOrigin = 'top left';
+            
+            // Re-renderizar piezas después del zoom
+            setTimeout(() => {
+                this.renderExistingPieces();
+            }, 50);
+        }
+    }
+
+    /**
+     * Limpiar recursos
+     */
+    cleanup() {
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+        
+        clearTimeout(this.resizeTimeout);
+        clearTimeout(this.imageResizeTimeout);
+        
+        window.removeEventListener('resize', this.handleWindowResize);
+    }
 }
 
 // Instancia global del editor
 window.pieceEditor = new PieceEditor();
+
+// Funciones globales para compatibilidad con la vista
+window.selectPieceFromList = function(pieceId) {
+    window.pieceEditor.selectPiece(pieceId);
+};
+
+window.deselectPiece = function() {
+    window.pieceEditor.deselectPiece();
+};
+
+window.deletePiece = function() {
+    window.pieceEditor.deletePiece();
+};
+
+window.highlightPiece = function(pieceId) {
+    window.pieceEditor.highlightPiece(pieceId);
+};
+
+window.zoomIn = function() {
+    window.pieceEditor.zoomIn();
+};
+
+window.zoomOut = function() {
+    window.pieceEditor.zoomOut();
+};
+
+window.resetZoom = function() {
+    window.pieceEditor.resetZoom();
+};

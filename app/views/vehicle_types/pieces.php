@@ -1,6 +1,7 @@
 <?php ob_start(); ?>
 
 <link href="<?= ASSETS_URL ?>css/vehicle-types.css" rel="stylesheet">
+<link href="<?= ASSETS_URL ?>css/vehicle_types_pieces.css" rel="stylesheet">
 
 <?php
 // Asegurar que los helpers estén cargados
@@ -255,11 +256,6 @@ renderContentHeader('Definir Piezas', [
                                         Posición: (<?= $piece['position_x'] ?>, <?= $piece['position_y'] ?>)
                                     </small>
                                 </div>
-                                <div class="piece-actions">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); highlightPiece(<?= $piece['id'] ?>)">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
                             </div>
                             <?php endforeach; ?>
                         </div>
@@ -312,8 +308,28 @@ const existingPieces = <?= json_encode($pieces) ?>;
 
 // Inicializar el editor cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing piece editor...');
+    console.log('Existing pieces:', existingPieces);
+    console.log('APP_URL:', window.APP_URL);
+    
+    // Verificar que los elementos existan
+    const imageWrapper = document.getElementById('imageWrapper');
+    const sectionImage = document.getElementById('sectionImage');
+    
+    console.log('Image wrapper found:', !!imageWrapper);
+    console.log('Section image found:', !!sectionImage);
+    
     // Inicializar el editor de piezas
-    window.pieceEditor.init(existingPieces);
+    if (window.pieceEditor && imageWrapper && sectionImage) {
+        window.pieceEditor.init(existingPieces);
+        console.log('Piece editor initialized successfully');
+    } else {
+        console.error('Failed to initialize piece editor:', {
+            pieceEditor: !!window.pieceEditor,
+            imageWrapper: !!imageWrapper,
+            sectionImage: !!sectionImage
+        });
+    }
     
     // Configurar notificaciones si no existe la función global
     if (typeof window.showNotification === 'undefined') {
@@ -337,6 +353,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Animaciones
     animateElements('.card', 100);
+    
+    // Test de funcionalidad después de 2 segundos
+    setTimeout(() => {
+        console.log('Running functionality test...');
+        console.log('window.pieceEditor available:', !!window.pieceEditor);
+        console.log('selectPieceFromList available:', typeof window.selectPieceFromList);
+        console.log('deselectPiece available:', typeof window.deselectPiece);
+        console.log('deletePiece available:', typeof window.deletePiece);
+        console.log('Current selected piece:', window.pieceEditor?.selectedPieceId);
+    }, 2000);
 });
 
 // Funciones legacy para compatibilidad con otros elementos del DOM

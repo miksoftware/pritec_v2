@@ -1,6 +1,7 @@
 <?php ob_start(); ?>
 
 <link href="<?= ASSETS_URL ?>css/vehicle-types.css" rel="stylesheet">
+<link href="<?= ASSETS_URL ?>css/vehicle_types_sections.css" rel="stylesheet">
 
 <?php
 // Asegurar que los helpers estén cargados
@@ -33,85 +34,86 @@ renderContentHeader('Configurar Secciones', [
 <!-- Content Body -->
 <div class="content-body">
     <div class="row">
-        <!-- Secciones Disponibles -->
+        <!-- Panel de Imagen de Sección -->
         <div class="col-lg-8">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-list me-2"></i>
-                        Secciones del Vehículo
-                    </h6>
-                    <small class="text-muted">
-                        <?= count($sections) ?> de <?= $vehicleType['type'] === 'carro' ? '3' : '2' ?> secciones configuradas
-                    </small>
-                </div>
-                <div class="card-body">
-                    <?php if (count($sections) > 0): ?>
-                        <div class="sections-grid">
-                            <?php foreach ($sections as $section): ?>
-                            <div class="section-card" data-section-id="<?= $section['id'] ?>">
-                                <div class="section-image-container">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-image me-2"></i>
+                                <span id="currentSectionTitle">Imagen de Sección</span>
+                            </h6>
+                            <small class="text-muted" id="currentSectionInfo">Selecciona una sección para cargar imagen</small>
+                        </div>
+                        <?php if (count($sections) > 0): ?>
+                        <div class="d-flex gap-2">
+                            <!-- Navegación entre secciones -->
+                            <div class="btn-group btn-group-sm" role="group">
+                                <?php foreach ($sections as $index => $section): ?>
+                                <button class="btn <?= $index === 0 ? 'btn-primary' : 'btn-outline-primary' ?> section-nav-btn"
+                                        data-section-id="<?= $section['id'] ?>"
+                                        data-section-name="<?= htmlspecialchars($section['name']) ?>"
+                                        data-section-image="<?= $section['image_path'] ? (ASSETS_URL . 'uploads/vehicle_sections/' . $section['image_path']) : '' ?>"
+                                        onclick="switchSection(<?= $section['id'] ?>, '<?= htmlspecialchars($section['name']) ?>', '<?= $section['image_path'] ? (ASSETS_URL . 'uploads/vehicle_sections/' . $section['image_path']) : '' ?>')">
+                                    <?= htmlspecialchars($section['name']) ?>
                                     <?php if ($section['image_path']): ?>
-                                        <img src="<?= ASSETS_URL ?>uploads/vehicle_sections/<?= $section['image_path'] ?>" 
-                                             alt="<?= htmlspecialchars($section['name']) ?>"
-                                             class="section-image">
-                                        <div class="section-overlay">
-                                            <div class="section-actions">
-                                                <button class="btn btn-sm btn-light" onclick="viewSection(<?= $section['id'] ?>)">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-warning" onclick="editSection(<?= $section['id'] ?>)">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <label class="btn btn-sm btn-primary">
-                                                    <i class="fas fa-upload"></i>
-                                                    <input type="file" class="d-none" accept="image/*" onchange="uploadSectionImage(this, <?= $section['id'] ?>)">
-                                                </label>
-                                            </div>
-                                            <?php if (isset($section['pieces_count']) && $section['pieces_count'] > 0): ?>
-                                            <div class="pieces-count">
-                                                <span class="badge bg-success">
-                                                    <?= $section['pieces_count'] ?> piezas
-                                                </span>
-                                            </div>
-                                            <?php endif; ?>
-                                        </div>
+                                        <i class="fas fa-check-circle text-success ms-1"></i>
                                     <?php else: ?>
-                                        <div class="section-placeholder">
-                                            <i class="fas fa-image fa-3x text-muted"></i>
-                                            <p class="text-muted mt-2">Sin imagen</p>
-                                            <label class="btn btn-primary btn-sm">
-                                                <i class="fas fa-upload me-1"></i>
-                                                Subir Imagen
-                                                <input type="file" class="d-none" accept="image/*" onchange="uploadSectionImage(this, <?= $section['id'] ?>)">
-                                            </label>
-                                        </div>
+                                        <i class="fas fa-times-circle text-danger ms-1"></i>
                                     <?php endif; ?>
-                                </div>
-                                <div class="section-info">
-                                    <h6 class="section-name"><?= htmlspecialchars($section['name']) ?></h6>
-                                    <div class="section-meta">
-                                        <small class="text-muted">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            Creado: <?= date('d/m/Y', strtotime($section['created_at'])) ?>
-                                        </small>
-                                    </div>
-                                </div>
+                                </button>
+                                <?php endforeach; ?>
                             </div>
-                            <?php endforeach; ?>
                         </div>
-                    <?php else: ?>
-                        <div class="text-center py-5">
-                            <i class="fas fa-puzzle-piece fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No hay secciones configuradas</h5>
-                            <p class="text-muted">Las secciones se crearán automáticamente al continuar.</p>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="section-image-viewer" id="sectionImageViewer">
+                        <?php if (count($sections) > 0): ?>
+                            <?php $firstSection = $sections[0]; ?>
+                            <?php if ($firstSection['image_path']): ?>
+                                <img src="<?= ASSETS_URL ?>uploads/vehicle_sections/<?= $firstSection['image_path'] ?>" 
+                                     alt="<?= htmlspecialchars($firstSection['name']) ?>"
+                                     class="section-display-image"
+                                     id="sectionDisplayImage"
+                                     style="max-width: 100%; height: auto; display: block;">
+                                <div class="section-overlay-actions">
+                                    <button class="btn btn-light btn-sm" onclick="viewCurrentSection()">
+                                        <i class="fas fa-eye me-1"></i> Ver
+                                    </button>
+                                    <button class="btn btn-warning btn-sm" onclick="editCurrentSection()">
+                                        <i class="fas fa-edit me-1"></i> Editar Piezas
+                                    </button>
+                                    <label class="btn btn-primary btn-sm">
+                                        <i class="fas fa-upload me-1"></i> Cambiar
+                                        <input type="file" class="d-none" accept="image/*" onchange="uploadCurrentSectionImage(this)">
+                                    </label>
+                                </div>
+                            <?php else: ?>
+                                <div class="section-placeholder text-center py-5" id="sectionPlaceholder">
+                                    <i class="fas fa-image fa-4x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Sin imagen cargada</h5>
+                                    <p class="text-muted mb-3">Sube una imagen para esta sección</p>
+                                    <label class="btn btn-primary">
+                                        <i class="fas fa-upload me-2"></i>
+                                        Subir Imagen
+                                        <input type="file" class="d-none" accept="image/*" onchange="uploadCurrentSectionImage(this)">
+                                    </label>
+                                </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <div class="text-center py-5">
+                                <i class="fas fa-puzzle-piece fa-4x text-muted mb-3"></i>
+                                <h5 class="text-muted">No hay secciones configuradas</h5>
+                                <p class="text-muted">Las secciones se crearán automáticamente al continuar.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Panel de Acciones -->
+        </div>        <!-- Panel de Acciones -->
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-header">
@@ -141,7 +143,7 @@ renderContentHeader('Configurar Secciones', [
                     <?php endif; ?>
                     
                     <div class="sections-info">
-                        <h6><i class="fas fa-list-ul me-2"></i>Secciones esperadas:</h6>
+                        <h6><i class="fas fa-list-ul me-2"></i>Estado de las secciones:</h6>
                         <ul class="list-unstyled">
                             <?php
                             $expectedSections = $vehicleType['type'] === 'carro' 
@@ -155,21 +157,31 @@ renderContentHeader('Configurar Secciones', [
                             ];
                             
                             foreach ($expectedSections as $expectedSection):
-                                $exists = false;
+                                $sectionExists = false;
+                                $hasImage = false;
+                                
                                 foreach ($sections as $section) {
                                     if ($section['section_name'] === $expectedSection) {
-                                        $exists = true;
+                                        $sectionExists = true;
+                                        $hasImage = !empty($section['image_path']);
                                         break;
                                     }
                                 }
                             ?>
                             <li class="mb-1">
-                                <?php if ($exists): ?>
+                                <?php if ($sectionExists && $hasImage): ?>
                                     <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span class="text-success"><?= $sectionNames[$expectedSection] ?></span>
+                                    <small class="text-muted ms-2">(Imagen cargada)</small>
+                                <?php elseif ($sectionExists && !$hasImage): ?>
+                                    <i class="fas fa-times-circle text-warning me-2"></i>
+                                    <span class="text-warning"><?= $sectionNames[$expectedSection] ?></span>
+                                    <small class="text-muted ms-2">(Sin imagen)</small>
                                 <?php else: ?>
                                     <i class="fas fa-circle text-muted me-2"></i>
+                                    <span class="text-muted"><?= $sectionNames[$expectedSection] ?></span>
+                                    <small class="text-muted ms-2">(No creada)</small>
                                 <?php endif; ?>
-                                <?= $sectionNames[$expectedSection] ?>
                             </li>
                             <?php endforeach; ?>
                         </ul>
@@ -408,6 +420,165 @@ function showLoading(element, message = 'Cargando...') {
 // Ocultar loading
 function hideLoading(element) {
     // Este método se usa cuando se recarga la página
+}
+
+// Variables globales para el estado actual
+let currentSectionId = <?= count($sections) > 0 ? $sections[0]['id'] : 'null' ?>;
+
+// Inicializar la vista al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada
+    animateElements('.section-nav-btn', 100);
+    animateElements('.card', 200);
+    
+    // Inicializar la primera sección si existe
+    <?php if (count($sections) > 0): ?>
+    updateSectionInfo(<?= $sections[0]['id'] ?>, '<?= htmlspecialchars($sections[0]['name']) ?>');
+    <?php endif; ?>
+});
+
+// Cambiar de sección
+function switchSection(sectionId, sectionName, imagePath) {
+    currentSectionId = sectionId;
+    
+    // Actualizar botones de navegación
+    document.querySelectorAll('.section-nav-btn').forEach(btn => {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline-primary');
+    });
+    
+    event.target.classList.remove('btn-outline-primary');
+    event.target.classList.add('btn-primary');
+    
+    // Actualizar título
+    document.getElementById('currentSectionTitle').textContent = sectionName;
+    document.getElementById('currentSectionInfo').textContent = imagePath ? 'Imagen cargada' : 'Sin imagen cargada';
+    
+    // Actualizar visor de imagen
+    const viewer = document.getElementById('sectionImageViewer');
+    
+    if (imagePath) {
+        viewer.innerHTML = `
+            <img src="${imagePath}" 
+                 alt="${sectionName}"
+                 class="section-display-image"
+                 id="sectionDisplayImage"
+                 style="max-width: 100%; height: auto; display: block;">
+            <div class="section-overlay-actions">
+                <button class="btn btn-light btn-sm" onclick="viewCurrentSection()">
+                    <i class="fas fa-eye me-1"></i> Ver
+                </button>
+                <button class="btn btn-warning btn-sm" onclick="editCurrentSection()">
+                    <i class="fas fa-edit me-1"></i> Editar Piezas
+                </button>
+                <label class="btn btn-primary btn-sm">
+                    <i class="fas fa-upload me-1"></i> Cambiar
+                    <input type="file" class="d-none" accept="image/*" onchange="uploadCurrentSectionImage(this)">
+                </label>
+            </div>
+        `;
+    } else {
+        viewer.innerHTML = `
+            <div class="section-placeholder text-center py-5" id="sectionPlaceholder">
+                <i class="fas fa-image fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">Sin imagen cargada</h5>
+                <p class="text-muted mb-3">Sube una imagen para ${sectionName}</p>
+                <label class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>
+                    Subir Imagen
+                    <input type="file" class="d-none" accept="image/*" onchange="uploadCurrentSectionImage(this)">
+                </label>
+            </div>
+        `;
+    }
+}
+
+// Actualizar información de la sección
+function updateSectionInfo(sectionId, sectionName) {
+    document.getElementById('currentSectionTitle').textContent = sectionName;
+}
+
+// Subir imagen de la sección actual
+function uploadCurrentSectionImage(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    const file = input.files[0];
+    
+    // Validar archivo
+    if (!file.type.startsWith('image/')) {
+        showNotification('error', 'Por favor selecciona un archivo de imagen válido');
+        return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+        showNotification('error', 'La imagen no puede ser mayor a 5MB');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('<?= CSRF_TOKEN_NAME ?>', '<?= $csrf_token ?>');
+    formData.append('section_id', currentSectionId);
+    formData.append('image', file);
+    
+    // Mostrar loading
+    const viewer = document.getElementById('sectionImageViewer');
+    showLoading(viewer, 'Subiendo imagen...');
+    
+    fetch('<?= APP_URL ?>vehicle-types/upload-section-image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', data.message);
+            // Recargar la página para mostrar la nueva imagen
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Error al subir la imagen');
+    });
+    
+    // Limpiar input
+    input.value = '';
+}
+
+// Ver sección actual
+function viewCurrentSection() {
+    fetch(`<?= APP_URL ?>vehicle-types/section/${currentSectionId}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('sectionModalContent').innerHTML = `
+                <div class="text-center">
+                    <img src="${data.section.image_url}" 
+                         alt="${data.section.name}" 
+                         class="img-fluid rounded"
+                         style="max-height: 400px;">
+                    <h5 class="mt-3">${data.section.name}</h5>
+                    <p class="text-muted">Piezas configuradas: ${data.section.pieces_count || 0}</p>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('sectionModal'));
+            modal.show();
+        } else {
+            showNotification('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Error al cargar la sección');
+    });
+}
+
+// Editar sección actual (redirige a la vista de piezas)
+function editCurrentSection() {
+    window.location.href = `<?= APP_URL ?>vehicle-types/section/${currentSectionId}/pieces`;
 }
 </script>
 

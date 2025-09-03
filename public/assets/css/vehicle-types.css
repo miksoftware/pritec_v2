@@ -589,7 +589,7 @@
 }
 
 .piece-number {
-    color: white;
+    color: rgb(0, 0, 0);
     font-weight: bold;
     font-size: 12px;
     user-select: none;
