@@ -1,7 +1,5 @@
 <?php ob_start(); ?>
 
-<link href="<?= ASSETS_URL ?>css/clients.css" rel="stylesheet">
-
 <?php
 // Asegurar que los helpers estén cargados
 if (!function_exists('renderContentHeader')) {

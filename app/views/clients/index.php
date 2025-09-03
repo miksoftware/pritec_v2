@@ -147,43 +147,67 @@ renderIndexView([
     'create_text' => 'Registrar Primer Cliente',
     'table_id' => 'clientsTable',
     'pagination' => $pagination ?? null,
-    'custom_scripts' => '
+    'custom_scripts' => "
     <script>
+    // Esperar a que el documento esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar que SweetAlert esté disponible
+        if (typeof Swal === 'undefined') {
+            console.error('SweetAlert no está disponible. Asegúrate de incluir la librería.');
+            return;
+        }
+        
+        console.log('SweetAlert disponible, funciones de cliente listas');
+    });
+
     // Función para alternar estado del cliente
     function toggleClientStatus(clientId, currentStatus) {
-        const action = currentStatus === "active" ? "deactivate" : "activate";
-        const title = action === "activate" ? "¿Activar cliente?" : "¿Desactivar cliente?";
-        const text = action === "activate" ? "El cliente podrá ser utilizado normalmente." : "El cliente será marcado como inactivo.";
-        const confirmText = action === "activate" ? "Sí, activar" : "Sí, desactivar";
+        console.log('toggleClientStatus called:', clientId, currentStatus);
+        
+        if (typeof Swal === 'undefined') {
+            alert('Sistema no disponible. Recarga la página.');
+            return;
+        }
+        
+        const action = currentStatus === 'active' ? 'deactivate' : 'activate';
+        const title = action === 'activate' ? '¿Activar cliente?' : '¿Desactivar cliente?';
+        const text = action === 'activate' ? 'El cliente podrá ser utilizado normalmente.' : 'El cliente será marcado como inactivo.';
+        const confirmText = action === 'activate' ? 'Sí, activar' : 'Sí, desactivar';
         
         Swal.fire({
             title: title,
             text: text,
-            icon: "question",
+            icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: action === "activate" ? "#28a745" : "#ffc107",
-            cancelButtonColor: "#6c757d",
+            confirmButtonColor: action === 'activate' ? '#28a745' : '#ffc107',
+            cancelButtonColor: '#6c757d',
             confirmButtonText: confirmText,
-            cancelButtonText: "Cancelar"
+            cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
                 const formData = new FormData();
-                formData.append("' . CSRF_TOKEN_NAME . '", "' . ($csrf_token ?? '') . '");
+                formData.append('" . CSRF_TOKEN_NAME . "', '" . ($csrf_token ?? '') . "');
                 
-                const url = action === "activate" 
-                    ? "' . APP_URL . 'clients/activate/" + clientId
-                    : "' . APP_URL . 'clients/destroy/" + clientId;
+                const url = action === 'activate' 
+                    ? '" . APP_URL . "clients/activate/' + clientId
+                    : '" . APP_URL . "clients/deactivate/' + clientId;
+                
+                console.log('Sending request to:', url);
                 
                 fetch(url, {
-                    method: "POST",
+                    method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Response data:', data);
                     if (data.success) {
                         Swal.fire({
-                            icon: "success",
-                            title: "¡Éxito!",
+                            icon: 'success',
+                            title: '¡Éxito!',
                             text: data.message,
                             timer: 2000,
                             showConfirmButton: false
@@ -192,18 +216,18 @@ renderIndexView([
                         });
                     } else {
                         Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: data.message
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Error desconocido'
                         });
                     }
                 })
                 .catch(error => {
-                    console.error("Error:", error);
+                    console.error('Fetch error:', error);
                     Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Ocurrió un error al procesar la solicitud"
+                        icon: 'error',
+                        title: 'Error de Conexión',
+                        text: 'No se pudo conectar con el servidor'
                     });
                 });
             }
@@ -212,30 +236,47 @@ renderIndexView([
 
     // Función para eliminar cliente
     function deleteClient(clientId, clientName) {
+        console.log('deleteClient called:', clientId, clientName);
+        
+        if (typeof Swal === 'undefined') {
+            if (confirm('¿Eliminar cliente ' + clientName + '?')) {
+                // Fallback si SweetAlert no está disponible
+                window.location.href = '" . APP_URL . "clients/destroy/' + clientId;
+            }
+            return;
+        }
+        
         Swal.fire({
-            title: "¿Eliminar cliente?",
-            text: "Se eliminará permanentemente a " + clientName + ". Esta acción no se puede deshacer.",
-            icon: "warning",
+            title: '¿Eliminar cliente?',
+            text: 'El cliente será eliminado y no aparecerá en la lista principal. Esta acción se puede revertir desde el área de administración.',
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#dc3545",
-            cancelButtonColor: "#6c757d",
-            confirmButtonText: "Sí, eliminar",
-            cancelButtonText: "Cancelar"
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
                 const formData = new FormData();
-                formData.append("' . CSRF_TOKEN_NAME . '", "' . ($csrf_token ?? '') . '");
+                formData.append('" . CSRF_TOKEN_NAME . "', '" . ($csrf_token ?? '') . "');
                 
-                fetch("' . APP_URL . 'clients/delete/" + clientId, {
-                    method: "POST",
+                const url = '" . APP_URL . "clients/destroy/' + clientId;
+                console.log('Sending delete request to:', url);
+                
+                fetch(url, {
+                    method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Delete response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Delete response data:', data);
                     if (data.success) {
                         Swal.fire({
-                            icon: "success",
-                            title: "¡Eliminado!",
+                            icon: 'success',
+                            title: '¡Eliminado!',
                             text: data.message,
                             timer: 2000,
                             showConfirmButton: false
@@ -244,25 +285,25 @@ renderIndexView([
                         });
                     } else {
                         Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: data.message
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Error desconocido'
                         });
                     }
                 })
                 .catch(error => {
-                    console.error("Error:", error);
+                    console.error('Delete error:', error);
                     Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Ocurrió un error al procesar la solicitud"
+                        icon: 'error',
+                        title: 'Error de Conexión',
+                        text: 'No se pudo conectar con el servidor'
                     });
                 });
             }
         });
     }
     </script>
-    '
+    "
 ]);
 ?>
 

@@ -91,6 +91,7 @@ $router->get('/clients/edit/{id}', 'ClientController@edit');
 $router->post('/clients/update/{id}', 'ClientController@update');
 $router->post('/clients/destroy/{id}', 'ClientController@destroy');
 $router->post('/clients/activate/{id}', 'ClientController@activate');
+$router->post('/clients/deactivate/{id}', 'ClientController@deactivate');
 $router->get('/clients/search', 'ClientController@search');
 $router->get('/clients/stats', 'ClientController@stats');
 $router->get('/clients/export', 'ClientController@export');

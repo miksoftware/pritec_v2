@@ -254,6 +254,44 @@ class ClientController extends Controller {
     }
     
     /**
+     * Desactivar cliente
+     */
+    public function deactivate($id) {
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new Exception('Método no permitido');
+            }
+            
+            if (!$this->verifyCSRFToken()) {
+                throw new Exception('Token CSRF inválido');
+            }
+            
+            $this->clientModel->deactivate($id);
+            
+            if ($this->isAjaxRequest()) {
+                $this->json([
+                    'success' => true,
+                    'message' => 'Cliente desactivado exitosamente'
+                ]);
+            } else {
+                $_SESSION['success'] = 'Cliente desactivado exitosamente';
+                $this->redirect('clients');
+            }
+            
+        } catch (Exception $e) {
+            if ($this->isAjaxRequest()) {
+                $this->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+            } else {
+                $_SESSION['error'] = $e->getMessage();
+                $this->redirect('clients');
+            }
+        }
+    }
+    
+    /**
      * Activar cliente
      */
     public function activate($id) {

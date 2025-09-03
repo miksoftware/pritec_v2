@@ -28,7 +28,7 @@ class Client extends Model {
     public function getAll($page = 1, $limit = 10, $search = '', $status = '') {
         $offset = ($page - 1) * $limit;
         
-        $whereConditions = [];
+        $whereConditions = ["status != 'deleted'"]; // Excluir eliminados
         $params = [];
         
         if (!empty($search)) {
@@ -42,7 +42,7 @@ class Client extends Model {
             $params[] = $status;
         }
         
-        $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+        $whereClause = 'WHERE ' . implode(' AND ', $whereConditions);
         
         $sql = "SELECT * FROM clients {$whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?";
         $params[] = $limit;
@@ -58,7 +58,7 @@ class Client extends Model {
      * Contar total de clientes con filtros
      */
     public function count($search = '', $status = '') {
-        $whereConditions = [];
+        $whereConditions = ["status != 'deleted'"]; // Excluir eliminados
         $params = [];
         
         if (!empty($search)) {
@@ -72,7 +72,7 @@ class Client extends Model {
             $params[] = $status;
         }
         
-        $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+        $whereClause = 'WHERE ' . implode(' AND ', $whereConditions);
         
         $sql = "SELECT COUNT(*) as total FROM clients {$whereClause}";
         $stmt = $this->db->getConnection()->prepare($sql);
@@ -211,7 +211,7 @@ class Client extends Model {
             throw new Exception("Cliente no encontrado");
         }
         
-        $sql = "UPDATE clients SET status = 'inactive', updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        $sql = "UPDATE clients SET status = 'deleted', updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         $stmt = $this->db->getConnection()->prepare($sql);
         $result = $stmt->execute([$id]);
         
@@ -223,20 +223,20 @@ class Client extends Model {
     }
     
     /**
-     * Eliminar cliente permanentemente
+     * Desactivar cliente (marcar como inactivo)
      */
-    public function forceDelete($id) {
+    public function deactivate($id) {
         // Validar que el cliente existe
         if (!$this->getById($id)) {
             throw new Exception("Cliente no encontrado");
         }
         
-        $sql = "DELETE FROM clients WHERE id = ?";
+        $sql = "UPDATE clients SET status = 'inactive', updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         $stmt = $this->db->getConnection()->prepare($sql);
         $result = $stmt->execute([$id]);
         
         if (!$result) {
-            throw new Exception("Error al eliminar permanentemente el cliente");
+            throw new Exception("Error al desactivar el cliente");
         }
         
         return true;
@@ -319,14 +319,20 @@ class Client extends Model {
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
                 SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive,
-                SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today,
-                SUM(CASE WHEN WEEK(created_at) = WEEK(NOW()) AND YEAR(created_at) = YEAR(NOW()) THEN 1 ELSE 0 END) as this_week,
-                SUM(CASE WHEN MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW()) THEN 1 ELSE 0 END) as this_month
+                SUM(CASE WHEN status = 'deleted' THEN 1 ELSE 0 END) as deleted,
+                SUM(CASE WHEN DATE(created_at) = CURDATE() AND status != 'deleted' THEN 1 ELSE 0 END) as today,
+                SUM(CASE WHEN WEEK(created_at) = WEEK(NOW()) AND YEAR(created_at) = YEAR(NOW()) AND status != 'deleted' THEN 1 ELSE 0 END) as this_week,
+                SUM(CASE WHEN MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW()) AND status != 'deleted' THEN 1 ELSE 0 END) as this_month
                 FROM clients";
         
         $stmt = $this->db->getConnection()->prepare($sql);
         $stmt->execute();
         
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $stats = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Restar los eliminados del total para mostrar solo activos e inactivos
+        $stats['total'] = $stats['total'] - $stats['deleted'];
+        
+        return $stats;
     }
 }

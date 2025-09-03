@@ -1,29 +1,32 @@
 <?php ob_start(); ?>
 
-<link href="<?= ASSETS_URL ?>css/clients.css" rel="stylesheet">
+<?php
+// Asegurar que los helpers estén cargados
+if (!function_exists('renderContentHeader')) {
+    require_once APP_PATH . '/helpers/view_helpers.php';
+}
 
-<!-- Content Header -->
-<div class="content-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-user-edit me-2"></i>
-                Editar Cliente
-            </h1>
-            <p class="text-muted mb-0">Actualiza la información de <?= htmlspecialchars($client['first_name'] . ' ' . $client['last_name']) ?></p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="<?= APP_URL ?>clients/show/<?= $client['id'] ?>" class="btn btn-outline-info">
-                <i class="fas fa-eye me-2"></i>
-                Ver Detalles
-            </a>
-            <a href="<?= APP_URL ?>clients" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>
-                Volver a Clientes
-            </a>
-        </div>
-    </div>
-</div>
+// Configurar el header de contenido
+renderContentHeader('Editar Cliente', [
+    'subtitle' => 'Actualiza la información de ' . htmlspecialchars($client['first_name'] . ' ' . $client['last_name']),
+    'icon' => 'fas fa-user-edit',
+    'breadcrumbs' => createBreadcrumbs([
+        ['text' => 'Clientes', 'url' => APP_URL . 'clients'],
+        ['text' => htmlspecialchars($client['first_name'] . ' ' . $client['last_name']), 'url' => APP_URL . 'clients/show/' . $client['id']],
+        ['text' => 'Editar', 'url' => null]
+    ]),
+    'actions' => [
+        createHeaderAction('Ver Detalles', APP_URL . 'clients/show/' . $client['id'], [
+            'icon' => 'fas fa-eye',
+            'class' => 'btn-outline-info'
+        ]),
+        createHeaderAction('Volver a Clientes', APP_URL . 'clients', [
+            'icon' => 'fas fa-arrow-left',
+            'class' => 'btn-outline-secondary'
+        ])
+    ]
+]);
+?>
 
 <!-- Client Form -->
 <div class="row justify-content-center">

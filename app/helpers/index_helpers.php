@@ -28,7 +28,8 @@ function renderIndexView($config) {
         'create_url' => '#',
         'create_text' => 'Nuevo Elemento',
         'table_id' => 'mainTable',
-        'pagination' => null
+        'pagination' => null,
+        'custom_scripts' => ''
     ];
     
     $config = array_merge($defaults, $config);
@@ -62,6 +63,11 @@ function renderIndexView($config) {
     renderMainTable($config);
     
     echo '</div>';
+    
+    // Renderizar scripts customizados al final
+    if (!empty($config['custom_scripts'])) {
+        echo $config['custom_scripts'];
+    }
 }
 
 /**
