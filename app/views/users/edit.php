@@ -2,22 +2,29 @@
 
 <link href="<?= ASSETS_URL ?>css/users.css" rel="stylesheet">
 
-<!-- Content Header -->
-<div class="content-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-user-edit me-2"></i>
-            Editar Usuario
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="<?= APP_URL ?>dashboard">Inicio</a></li>
-                <li class="breadcrumb-item"><a href="<?= APP_URL ?>users">Usuarios</a></li>
-                <li class="breadcrumb-item active">Editar</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+<?php
+// Asegurar que los helpers estén cargados
+if (!function_exists('renderContentHeader')) {
+    require_once APP_PATH . '/helpers/view_helpers.php';
+}
+
+// Configurar el header de contenido
+renderContentHeader('Editar Usuario', [
+    'subtitle' => 'Actualiza la información de ' . htmlspecialchars($user['full_name']),
+    'icon' => 'fas fa-user-edit',
+    'breadcrumbs' => createBreadcrumbs([
+        ['text' => 'Usuarios', 'url' => APP_URL . 'users'],
+        ['text' => htmlspecialchars($user['full_name']), 'url' => null],
+        ['text' => 'Editar', 'url' => null]
+    ]),
+    'actions' => [
+        createHeaderAction('Volver a Usuarios', APP_URL . 'users', [
+            'icon' => 'fas fa-arrow-left',
+            'class' => 'btn-outline-secondary'
+        ])
+    ]
+]);
+?>
 
 <!-- Content Body -->
 <div class="content-body">
