@@ -2,40 +2,28 @@
 
 <link href="<?= ASSETS_URL ?>css/vehicle-types.css" rel="stylesheet">
 
-<!-- Content Header -->
-<div class="content-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-car me-2"></i>
-            Crear Tipo de Vehículo
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="<?= APP_URL ?>dashboard">Inicio</a></li>
-                <li class="breadcrumb-item"><a href="<?= APP_URL ?>vehicle-types">Tipos de Vehículos</a></li>
-                <li class="breadcrumb-item active">Crear</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+<?php
+// Asegurar que los helpers estén cargados
+if (!function_exists('renderContentHeader')) {
+    require_once APP_PATH . '/helpers/view_helpers.php';
+}
 
-<!-- Step Indicator -->
-<div class="step-indicator">
-    <div class="step active">
-        <div class="step-number">1</div>
-        <span>Información Básica</span>
-    </div>
-    <div class="step-connector"></div>
-    <div class="step">
-        <div class="step-number">2</div>
-        <span>Configurar Secciones</span>
-    </div>
-    <div class="step-connector"></div>
-    <div class="step">
-        <div class="step-number">3</div>
-        <span>Definir Piezas</span>
-    </div>
-</div>
+// Configurar el header de contenido
+renderContentHeader('Crear Tipo de Vehículo', [
+    'subtitle' => 'Configura un nuevo tipo de vehículo para el sistema',
+    'icon' => 'fas fa-car',
+    'breadcrumbs' => createBreadcrumbs([
+        ['text' => 'Tipos de Vehículos', 'url' => APP_URL . 'vehicle-types'],
+        ['text' => 'Crear', 'url' => null]
+    ]),
+    'actions' => [
+        createHeaderAction('Volver a Tipos', APP_URL . 'vehicle-types', [
+            'icon' => 'fas fa-arrow-left',
+            'class' => 'btn-outline-secondary'
+        ])
+    ]
+]);
+?>
 
 <!-- Content Body -->
 <div class="content-body">

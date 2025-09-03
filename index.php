@@ -65,8 +65,8 @@ $router->get('/vehicle-types/create', 'VehicleTypeController@create');
 $router->post('/vehicle-types/store', 'VehicleTypeController@store');
 $router->get('/vehicle-types/{id}/edit', 'VehicleTypeController@edit');
 $router->post('/vehicle-types/update', 'VehicleTypeController@update');
-$router->post('/vehicle-types/delete', 'VehicleTypeController@delete');
-$router->post('/vehicle-types/toggle-status', 'VehicleTypeController@toggleStatus');
+$router->post('/vehicle-types/delete/{id}', 'VehicleTypeController@delete');
+$router->post('/vehicle-types/toggle-status/{id}', 'VehicleTypeController@toggleStatus');
 
 // Rutas de secciones
 $router->get('/vehicle-types/{id}/sections', 'VehicleTypeController@sections');

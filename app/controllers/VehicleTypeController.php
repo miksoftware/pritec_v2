@@ -18,6 +18,7 @@ class VehicleTypeController extends Controller
             exit();
         }
         
+        parent::__construct();
         $this->vehicleTypeModel = new VehicleType();
         $this->vehicleSectionModel = new VehicleSection();
         $this->vehiclePieceModel = new VehiclePiece();
@@ -435,7 +436,7 @@ class VehicleTypeController extends Controller
     /**
      * Eliminar tipo de vehículo
      */
-    public function delete()
+    public function delete($id = null)
     {
         header('Content-Type: application/json');
         
@@ -444,15 +445,21 @@ class VehicleTypeController extends Controller
                 throw new Exception('Método no permitido');
             }
             
-            if (!$this->verifyCSRFToken()) {
+            // Obtener datos del JSON body
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            // Verificar token CSRF
+            if (!isset($input['csrf_token']) || 
+                !isset($_SESSION[CSRF_TOKEN_NAME]) || 
+                !hash_equals($_SESSION[CSRF_TOKEN_NAME], $input['csrf_token'])) {
                 throw new Exception('Token de seguridad inválido');
             }
             
-            if (empty($_POST['id']) || !is_numeric($_POST['id'])) {
+            // El ID viene desde la URL
+            if (empty($id) || !is_numeric($id)) {
                 throw new Exception('ID de tipo de vehículo no válido');
             }
             
-            $id = $_POST['id'];
             $vehicleType = $this->vehicleTypeModel->findById($id);
             
             if (!$vehicleType) {
@@ -479,7 +486,7 @@ class VehicleTypeController extends Controller
     /**
      * Cambiar estado de tipo de vehículo
      */
-    public function toggleStatus()
+    public function toggleStatus($id = null)
     {
         header('Content-Type: application/json');
         
@@ -488,15 +495,21 @@ class VehicleTypeController extends Controller
                 throw new Exception('Método no permitido');
             }
             
-            if (!$this->verifyCSRFToken()) {
+            // Obtener datos del JSON body
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            // Verificar token CSRF
+            if (!isset($input['csrf_token']) || 
+                !isset($_SESSION[CSRF_TOKEN_NAME]) || 
+                !hash_equals($_SESSION[CSRF_TOKEN_NAME], $input['csrf_token'])) {
                 throw new Exception('Token de seguridad inválido');
             }
             
-            if (empty($_POST['id']) || !is_numeric($_POST['id'])) {
+            // El ID viene desde la URL
+            if (empty($id) || !is_numeric($id)) {
                 throw new Exception('ID de tipo de vehículo no válido');
             }
             
-            $id = $_POST['id'];
             $vehicleType = $this->vehicleTypeModel->findById($id);
             
             if (!$vehicleType) {

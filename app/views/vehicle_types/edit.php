@@ -2,22 +2,33 @@
 
 <link href="<?= ASSETS_URL ?>css/vehicle-types.css" rel="stylesheet">
 
-<!-- Content Header -->
-<div class="content-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-edit me-2"></i>
-            Editar Tipo de Vehículo
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="<?= APP_URL ?>dashboard">Inicio</a></li>
-                <li class="breadcrumb-item"><a href="<?= APP_URL ?>vehicle-types">Tipos de Vehículos</a></li>
-                <li class="breadcrumb-item active">Editar</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+<?php
+// Asegurar que los helpers estén cargados
+if (!function_exists('renderContentHeader')) {
+    require_once APP_PATH . '/helpers/view_helpers.php';
+}
+
+// Configurar el header de contenido
+renderContentHeader('Editar Tipo de Vehículo', [
+    'subtitle' => 'Modifica la configuración de ' . htmlspecialchars($vehicleType['name']),
+    'icon' => 'fas fa-edit',
+    'breadcrumbs' => createBreadcrumbs([
+        ['text' => 'Tipos de Vehículos', 'url' => APP_URL . 'vehicle-types'],
+        ['text' => htmlspecialchars($vehicleType['name']), 'url' => APP_URL . 'vehicle-types/' . $vehicleType['id'] . '/sections'],
+        ['text' => 'Editar', 'url' => null]
+    ]),
+    'actions' => [
+        createHeaderAction('Gestionar Secciones', APP_URL . 'vehicle-types/' . $vehicleType['id'] . '/sections', [
+            'icon' => 'fas fa-puzzle-piece',
+            'class' => 'btn-outline-info'
+        ]),
+        createHeaderAction('Volver a Tipos', APP_URL . 'vehicle-types', [
+            'icon' => 'fas fa-arrow-left',
+            'class' => 'btn-outline-secondary'
+        ])
+    ]
+]);
+?>
 
 <!-- Content Body -->
 <div class="content-body">

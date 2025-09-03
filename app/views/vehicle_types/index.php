@@ -63,7 +63,7 @@ renderIndexView([
                     'title' => 'Configurar Secciones'
                 ],
                 [
-                    'url' => APP_URL . 'vehicle-types/edit/{id}',
+                    'url' => APP_URL . 'vehicle-types/{id}/edit',
                     'class' => 'btn-outline-primary',
                     'icon' => 'fas fa-edit',
                     'title' => 'Editar'
