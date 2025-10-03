@@ -1,0 +1,29 @@
+/* Dropdown submenu styles for sidebar */
+.sidebar-dropdown {
+    position: relative;
+}
+
+.sidebar-dropdown-content {
+    display: none;
+    background: rgba(0, 0, 0, 0.1);
+    padding-left: 30px;
+}
+
+.sidebar-dropdown.active .sidebar-dropdown-content {
+    display: block;
+}
+
+.sidebar-dropdown-toggle {
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.sidebar-dropdown-toggle i.dropdown-icon {
+    float: right;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-dropdown.active .sidebar-dropdown-toggle i.dropdown-icon {
+    transform: rotate(180deg);
+}

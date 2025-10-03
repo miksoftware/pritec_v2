@@ -197,4 +197,23 @@ class VehicleType extends Model {
             return false;
         }
     }
+    
+    /**
+     * Obtener todos los tipos de vehículos activos
+     */
+    public function getAllActive() {
+        try {
+            $sql = "SELECT id, name 
+                    FROM {$this->table} 
+                    WHERE status = 'active'
+                    ORDER BY name";
+            
+            $stmt = $this->db->query($sql);
+            return $stmt->fetchAll();
+            
+        } catch (Exception $e) {
+            error_log("Error getting active vehicle types: " . $e->getMessage());
+            return [];
+        }
+    }
 }

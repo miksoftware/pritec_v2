@@ -35,11 +35,26 @@
             </a>
         </div>
         
-        <div class="sidebar-nav-item">
-            <a href="#" class="sidebar-nav-link" onclick="showComingSoon('Peritajes')">
+        <div class="sidebar-nav-item sidebar-dropdown">
+            <a href="javascript:void(0)" class="sidebar-nav-link sidebar-dropdown-toggle <?= (strpos($_SERVER['REQUEST_URI'], 'expertise') !== false) ? 'active' : '' ?>">
                 <i class="fas fa-clipboard-check"></i>
                 <span class="sidebar-text">Peritajes</span>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
             </a>
+            <div class="sidebar-dropdown-content">
+                <div class="sidebar-nav-item">
+                    <a href="<?= APP_URL ?>expertise" class="sidebar-nav-link <?= ($_SERVER['REQUEST_URI'] === APP_URL . 'expertise' || strpos($_SERVER['REQUEST_URI'], 'expertise/index') !== false) ? 'active' : '' ?>">
+                        <i class="fas fa-list"></i>
+                        <span class="sidebar-text">Peritaje Completo</span>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="#" class="sidebar-nav-link" onclick="showComingSoon('Reportes')">
+                        <i class="fas fa-plus"></i>
+                        <span class="sidebar-text">Peritaje Basico</span>
+                    </a>
+                </div>
+            </div>
         </div>
         
         <div class="sidebar-nav-item">

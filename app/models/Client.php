@@ -312,6 +312,21 @@ class Client extends Model {
     }
     
     /**
+     * Obtener todos los clientes activos
+     */
+    public function getAllActive() {
+        $sql = "SELECT id, CONCAT(first_name, ' ', last_name) as name, identification 
+                FROM clients 
+                WHERE status = 'active'
+                ORDER BY first_name, last_name";
+                
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
      * Obtener estadísticas de clientes
      */
     public function getStats() {
