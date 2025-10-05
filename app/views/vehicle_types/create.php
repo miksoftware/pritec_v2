@@ -202,7 +202,7 @@ function updateVehicleIcon() {
             sectionsInfo.innerHTML = `
                 <strong>Se crearán 2 secciones:</strong>
                 <ul class="mb-0 mt-2">
-                    <li><i class="fas fa-motorcycle me-2"></i>Carrocería</li>
+                    <li><i class="fas fa-motorcycle me-2"></i>Estructura</li>
                     <li><i class="fas fa-cogs me-2"></i>Chasis</li>
                 </ul>
             `;

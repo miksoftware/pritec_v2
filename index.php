@@ -23,6 +23,7 @@ require_once __DIR__ . '/app/controllers/DashboardController.php';
 require_once __DIR__ . '/app/controllers/UserController.php';
 require_once __DIR__ . '/app/controllers/VehicleTypeController.php';
 require_once __DIR__ . '/app/controllers/ClientController.php';
+require_once __DIR__ . '/app/controllers/ExpertiseController.php';
 
 // Crear instancia del router
 $router = new Router();
@@ -95,6 +96,37 @@ $router->post('/clients/deactivate/{id}', 'ClientController@deactivate');
 $router->get('/clients/search', 'ClientController@search');
 $router->get('/clients/stats', 'ClientController@stats');
 $router->get('/clients/export', 'ClientController@export');
+
+// Rutas de Peritajes (Expertise)
+$router->get('/expertise', 'ExpertiseController@index');
+$router->get('/expertise/create', 'ExpertiseController@create');
+$router->post('/expertise/store', 'ExpertiseController@store');
+$router->get('/expertise/search-clients', 'ExpertiseController@searchClients');
+$router->get('/expertise/step2', 'ExpertiseController@step2');
+$router->get('/expertise/search-vehicle-types', 'ExpertiseController@searchVehicleTypes');
+$router->post('/expertise/save-step2', 'ExpertiseController@saveStep2');
+$router->get('/expertise/step3', 'ExpertiseController@step3');
+$router->get('/expertise/get-pieces-by-vehicle-type', 'ExpertiseController@getPiecesByVehicleType');
+$router->get('/expertise/get-inspection-concepts', 'ExpertiseController@getInspectionConcepts');
+$router->post('/expertise/save-step3', 'ExpertiseController@saveStep3');
+$router->get('/expertise/step4', 'ExpertiseController@step4');
+$router->post('/expertise/save-step4', 'ExpertiseController@saveStep4');
+$router->get('/expertise/step5', 'ExpertiseController@step5');
+$router->post('/expertise/save-step5', 'ExpertiseController@saveStep5');
+$router->get('/expertise/step6', 'ExpertiseController@step6');
+$router->post('/expertise/save-step6', 'ExpertiseController@saveStep6');
+$router->get('/expertise/step7', 'ExpertiseController@step7');
+$router->post('/expertise/save-step7', 'ExpertiseController@saveStep7');
+$router->get('/expertise/step8', 'ExpertiseController@step8');
+$router->post('/expertise/save-step8', 'ExpertiseController@saveStep8');
+$router->get('/expertise/step9', 'ExpertiseController@step9');
+$router->post('/expertise/save-step9', 'ExpertiseController@saveStep9');
+$router->get('/expertise/step10', 'ExpertiseController@step10');
+$router->post('/expertise/save-step10', 'ExpertiseController@saveStep10');
+$router->get('/expertise/step11', 'ExpertiseController@step11');
+$router->post('/expertise/save-step11', 'ExpertiseController@saveStep11');
+$router->get('/expertise/step12', 'ExpertiseController@step12');
+$router->post('/expertise/save-final', 'ExpertiseController@saveFinal');
 
 // Procesar la ruta actual
 $router->dispatch();

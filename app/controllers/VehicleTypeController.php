@@ -137,7 +137,7 @@ class VehicleTypeController extends Controller
         if ($type === 'carro') {
             $sections = ['carroceria', 'estructura', 'chasis'];
         } else { // moto
-            $sections = ['carroceria', 'chasis'];
+            $sections = ['estructura', 'chasis'];
         }
         
         foreach ($sections as $sectionName) {

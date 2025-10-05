@@ -1,0 +1,115 @@
+/**
+ * JavaScript para Paso 6 - Inspección de Llantas
+ */
+
+(function() {
+    'use strict';
+    
+    // Elementos del DOM
+    const step6Form = document.getElementById('step6Form');
+    const inputs = [
+        document.getElementById('llanta_anterior_izquierda'),
+        document.getElementById('llanta_anterior_derecha'),
+        document.getElementById('llanta_posterior_izquierda'),
+        document.getElementById('llanta_posterior_derecha')
+    ];
+    
+    /**
+     * Inicializar
+     */
+    function init() {
+        // Agregar validación en tiempo real a cada input
+        inputs.forEach(function(input) {
+            if (input) {
+                input.addEventListener('input', function() {
+                    validarPorcentaje(this);
+                    actualizarIndicadorEstado(this);
+                });
+                
+                input.addEventListener('blur', function() {
+                    validarPorcentaje(this);
+                });
+            }
+        });
+        
+        // Validación del formulario
+        step6Form.addEventListener('submit', function(event) {
+            let valido = true;
+            
+            // Validar todos los campos
+            inputs.forEach(function(input) {
+                if (!validarPorcentaje(input)) {
+                    valido = false;
+                }
+            });
+            
+            if (!valido) {
+                event.preventDefault();
+                alert('Por favor, corrija los valores de porcentaje (deben estar entre 0 y 100)');
+                return false;
+            }
+            
+            if (!step6Form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            step6Form.classList.add('was-validated');
+        });
+    }
+    
+    /**
+     * Validar que el porcentaje esté entre 0 y 100
+     */
+    function validarPorcentaje(input) {
+        if (!input) return true;
+        
+        const valor = parseInt(input.value);
+        
+        if (isNaN(valor) || valor < 0 || valor > 100) {
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+            return false;
+        } else {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            return true;
+        }
+    }
+    
+    /**
+     * Actualizar indicador visual del estado de la llanta
+     */
+    function actualizarIndicadorEstado(input) {
+        if (!input) return;
+        
+        const valor = parseInt(input.value);
+        
+        if (isNaN(valor)) return;
+        
+        // Remover clases anteriores
+        input.classList.remove('border-success', 'border-warning', 'border-danger');
+        
+        // Agregar clase según el estado
+        if (valor >= 80) {
+            input.classList.add('border-success');
+            input.style.borderWidth = '2px';
+        } else if (valor >= 50) {
+            input.classList.add('border-success');
+            input.style.borderWidth = '2px';
+        } else if (valor >= 30) {
+            input.classList.add('border-warning');
+            input.style.borderWidth = '2px';
+        } else {
+            input.classList.add('border-danger');
+            input.style.borderWidth = '2px';
+        }
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    
+})();
