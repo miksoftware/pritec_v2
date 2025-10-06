@@ -18,16 +18,39 @@ class UserController extends Controller
     }
     
     /**
-     * Listar todos los usuarios
+     * Listar todos los usuarios con paginación
      */
     public function index()
     {
         try {
-            $users = $this->userModel->getAllUsers();
+            // Cargar helper de paginación
+            if (!function_exists('renderPagination')) {
+                require_once APP_PATH . '/helpers/index_helpers.php';
+            }
+            
+            // Obtener parámetros de paginación y búsqueda
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $page = max(1, $page); // Asegurar que sea al menos 1
+            $limit = 20; // Usuarios por página
+            $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+            
+            // Obtener usuarios paginados
+            $users = $this->userModel->getAllWithPagination($page, $limit, $search);
+            
+            // Obtener total de registros
+            $totalRecords = $this->userModel->count($search);
+            $totalPages = ceil($totalRecords / $limit);
+            
+            // Generar HTML de paginación
+            $pagination = renderPagination($page, $totalPages, $totalRecords, '', $limit);
+            
             $data = [
                 'title' => 'Gestión de Usuarios - Pritec v2.0',
                 'users' => $users,
-                'csrf_token' => $this->generateCSRFToken()
+                'csrf_token' => $this->generateCSRFToken(),
+                'pagination' => $pagination,
+                'search' => $search,
+                'totalRecords' => $totalRecords
             ];
             
             $this->view('users/index', $data);

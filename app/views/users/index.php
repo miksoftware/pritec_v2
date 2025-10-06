@@ -12,8 +12,26 @@ renderIndexView([
     'subtitle' => 'Administra todos los usuarios del sistema',
     'icon' => 'fas fa-users',
     'module_name' => 'usuarios',
-    'show_stats' => false,
-    'show_filters' => false,
+    'show_stats' => true,
+    'stats' => [
+        [
+            'title' => 'Total Usuarios',
+            'value' => $totalRecords ?? 0,
+            'icon' => 'fas fa-users',
+            'color' => 'primary'
+        ]
+    ],
+    'show_filters' => true,
+    'filters' => [
+        [
+            'type' => 'search',
+            'name' => 'search',
+            'placeholder' => 'Buscar por usuario, email o nombre...',
+            'value' => $search ?? '',
+            'width' => '12'
+        ]
+    ],
+    'pagination' => $pagination ?? null,
     'data' => $users ?? [],
     'columns' => [
         [

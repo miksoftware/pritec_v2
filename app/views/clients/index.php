@@ -43,10 +43,10 @@ renderIndexView([
     'filters' => [
         [
             'name' => 'search',
-            'label' => 'Buscar',
-            'type' => 'text',
-            'placeholder' => 'Nombre, identificación, email...',
-            'width' => '6'
+            'type' => 'search',
+            'placeholder' => 'Buscar por nombre, identificación, email o teléfono...',
+            'value' => $search ?? '',
+            'width' => '9'
         ],
         [
             'name' => 'status',

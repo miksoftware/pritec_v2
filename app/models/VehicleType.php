@@ -216,4 +216,60 @@ class VehicleType extends Model {
             return [];
         }
     }
+    
+    /**
+     * Obtener tipos de vehículos con paginación y búsqueda
+     */
+    public function getAllWithPagination($page = 1, $limit = 20, $search = '') {
+        try {
+            $offset = ($page - 1) * $limit;
+            $params = [];
+            
+            $sql = "SELECT id, type, name, description, status, created_at 
+                    FROM {$this->table}";
+            
+            // Agregar búsqueda si existe
+            if (!empty($search)) {
+                $sql .= " WHERE name LIKE ? OR description LIKE ?";
+                $searchParam = "%{$search}%";
+                $params = [$searchParam, $searchParam];
+            }
+            
+            $sql .= " ORDER BY created_at DESC LIMIT {$limit} OFFSET {$offset}";
+            
+            $stmt = $this->db->query($sql, $params);
+            return $stmt->fetchAll();
+            
+        } catch (Exception $e) {
+            error_log("Error getting vehicle types with pagination: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Contar total de tipos de vehículos (con filtro de búsqueda opcional)
+     */
+    public function count($search = '') {
+        try {
+            $params = [];
+            
+            $sql = "SELECT COUNT(*) as total FROM {$this->table}";
+            
+            // Agregar búsqueda si existe
+            if (!empty($search)) {
+                $sql .= " WHERE name LIKE ? OR description LIKE ?";
+                $searchParam = "%{$search}%";
+                $params = [$searchParam, $searchParam];
+            }
+            
+            $stmt = $this->db->query($sql, $params);
+            $result = $stmt->fetch();
+            
+            return (int)$result['total'];
+            
+        } catch (Exception $e) {
+            error_log("Error counting vehicle types: " . $e->getMessage());
+            return 0;
+        }
+    }
 }

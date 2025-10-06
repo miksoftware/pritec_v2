@@ -4,7 +4,11 @@
  * Maneja todas las operaciones para peritajes completos y básicos
  */
 
+require_once APP_PATH . '/models/Expertise.php';
+
 class ExpertiseController extends Controller {
+    
+    private $expertiseModel;
     
     public function __construct() {
         // Verificar que el usuario esté logueado
@@ -14,62 +18,47 @@ class ExpertiseController extends Controller {
         }
         
         parent::__construct();
+        
+        // Inicializar modelo
+        $this->expertiseModel = new Expertise();
     }
     
     /**
      * Mostrar lista de peritajes completos
      */
     public function index() {
-        // Debug temporal
-        error_log("=== ExpertiseController::index() ejecutándose ===");
-        
         try {
-            // Obtener todos los peritajes completos con información del cliente y vehículo
-            $sql = "SELECT 
-                        e.id,
-                        e.service_date,
-                        e.service_number,
-                        e.placa,
-                        e.marca,
-                        e.linea,
-                        e.modelo,
-                        e.color,
-                        e.kilometraje,
-                        c.first_name as cliente_nombre,
-                        c.last_name as cliente_apellido,
-                        c.email as cliente_correo,
-                        c.phone as cliente_telefono,
-                        vt.name as tipo_vehiculo_nombre,
-                        e.created_at,
-                        e.updated_at,
-                        (SELECT COUNT(*) FROM expertise_inspections ei WHERE ei.expertise_id = e.id) as total_inspecciones,
-                        (SELECT COUNT(*) FROM expertise_photos ep WHERE ep.expertise_id = e.id) as total_fotos
-                    FROM expertises e
-                    LEFT JOIN clients c ON e.client_id = c.id
-                    LEFT JOIN vehicle_types vt ON e.vehicle_type_id = vt.id
-                    ORDER BY e.created_at DESC";
+            // Obtener filtros y paginación
+            $search = $_GET['search'] ?? '';
+            $month = $_GET['month'] ?? '';
+            $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+            $limit = 20; // Registros por página
             
-            $conn = $this->db->getConnection();
-            $stmt = $conn->prepare($sql);
-            $stmt->execute();
-            $expertises = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Obtener peritajes con paginación
+            $expertises = $this->expertiseModel->getAllWithRelations($page, $limit, $search, $month);
+            
+            // Obtener total para la paginación
+            $totalRecords = $this->expertiseModel->count($search, $month);
+            $totalPages = ceil($totalRecords / $limit);
+            
+            // Generar HTML de paginación (siempre se mostrará la info del total)
+            $pagination = renderPagination($page, $totalPages, $totalRecords, '', $limit);
             
             $data = [
                 'title' => 'Peritajes Completos',
                 'expertises' => $expertises,
+                'pagination' => $pagination,
+                'current_page' => $page,
+                'total_pages' => $totalPages,
+                'total_records' => $totalRecords,
                 'csrf_token' => $this->generateCSRFToken()
             ];
             
             $this->view('expertise/index', $data);
             
         } catch (Exception $e) {
-            // Debug temporal - mostrar error en pantalla
-            echo "<h1>Error en ExpertiseController::index()</h1>";
-            echo "<p><strong>Mensaje:</strong> " . $e->getMessage() . "</p>";
-            echo "<p><strong>Archivo:</strong> " . $e->getFile() . "</p>";
-            echo "<p><strong>Línea:</strong> " . $e->getLine() . "</p>";
-            echo "<pre>" . $e->getTraceAsString() . "</pre>";
-            exit;
+            $_SESSION['error'] = 'Error al cargar peritajes: ' . $e->getMessage();
+            $this->redirect('dashboard');
         }
     }
     
@@ -134,7 +123,6 @@ class ExpertiseController extends Controller {
         try {
             header('Content-Type: application/json');
             
-            // Obtener término de búsqueda
             $search = isset($_GET['search']) ? trim($_GET['search']) : '';
             
             if (strlen($search) < 3) {
@@ -145,24 +133,8 @@ class ExpertiseController extends Controller {
                 return;
             }
             
-            // Buscar clientes en la base de datos
-            $searchParam = "%{$search}%";
-            
-            $query = "SELECT id, first_name, last_name, identification, phone, email, address 
-                      FROM clients 
-                      WHERE status = 'active' 
-                      AND (first_name LIKE ? 
-                           OR last_name LIKE ? 
-                           OR identification LIKE ? 
-                           OR phone LIKE ? 
-                           OR email LIKE ?)
-                      ORDER BY first_name, last_name
-                      LIMIT 20";
-            
-            $stmt = $this->db->getConnection()->prepare($query);
-            $stmt->execute([$searchParam, $searchParam, $searchParam, $searchParam, $searchParam]);
-            
-            $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Usar modelo para buscar clientes
+            $clients = $this->expertiseModel->searchClients($search);
             
             echo json_encode([
                 'success' => true,
@@ -210,34 +182,10 @@ class ExpertiseController extends Controller {
         try {
             header('Content-Type: application/json');
             
-            // Obtener término de búsqueda
             $search = isset($_GET['search']) ? trim($_GET['search']) : '';
             
-            // Buscar tipos de vehículos en la base de datos
-            if (strlen($search) > 0) {
-                $searchParam = "%{$search}%";
-                $query = "SELECT id, type, name, description 
-                          FROM vehicle_types 
-                          WHERE status = 'active' 
-                          AND (name LIKE ? OR description LIKE ?)
-                          ORDER BY type, name
-                          LIMIT 50";
-                
-                $stmt = $this->db->getConnection()->prepare($query);
-                $stmt->execute([$searchParam, $searchParam]);
-            } else {
-                // Si no hay búsqueda, mostrar todos
-                $query = "SELECT id, type, name, description 
-                          FROM vehicle_types 
-                          WHERE status = 'active' 
-                          ORDER BY type, name
-                          LIMIT 50";
-                
-                $stmt = $this->db->getConnection()->prepare($query);
-                $stmt->execute();
-            }
-            
-            $vehicleTypes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Usar modelo para buscar tipos de vehículos
+            $vehicleTypes = $this->expertiseModel->searchVehicleTypes($search);
             
             echo json_encode([
                 'success' => true,
@@ -348,35 +296,8 @@ class ExpertiseController extends Controller {
                 return;
             }
             
-            // Obtener el section_id para el tipo de vehículo y sección
-            $query = "SELECT id FROM vehicle_sections 
-                      WHERE vehicle_type_id = ? 
-                      AND section_name = ?
-                      LIMIT 1";
-            
-            $stmt = $this->db->getConnection()->prepare($query);
-            $stmt->execute([$vehicleTypeId, $section]);
-            $sectionData = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$sectionData) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'No se encontró la sección de ' . $section . ' para este tipo de vehículo'
-                ]);
-                return;
-            }
-            
-            $sectionId = $sectionData['id'];
-            
-            // Obtener las piezas de esa sección
-            $query = "SELECT id, piece_number, piece_name 
-                      FROM vehicle_pieces 
-                      WHERE section_id = ?
-                      ORDER BY piece_number";
-            
-            $stmt = $this->db->getConnection()->prepare($query);
-            $stmt->execute([$sectionId]);
-            $pieces = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Usar modelo para obtener piezas
+            $pieces = $this->expertiseModel->getPiecesByVehicleTypeAndSection($vehicleTypeId, $section);
             
             echo json_encode([
                 'success' => true,
@@ -401,16 +322,8 @@ class ExpertiseController extends Controller {
             
             $category = isset($_GET['category']) ? $_GET['category'] : 'carroceria';
             
-            // Obtener conceptos de la categoría específica + conceptos generales (all)
-            $query = "SELECT id, name, display_order 
-                      FROM inspection_concepts 
-                      WHERE status = 'active' 
-                      AND (category = ? OR category = 'all')
-                      ORDER BY display_order, name";
-            
-            $stmt = $this->db->getConnection()->prepare($query);
-            $stmt->execute([$category]);
-            $concepts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Usar modelo para obtener conceptos
+            $concepts = $this->expertiseModel->getInspectionConceptsByCategory($category);
             
             echo json_encode([
                 'success' => true,
@@ -1287,20 +1200,26 @@ class ExpertiseController extends Controller {
             }
             
             // Verificar que existan datos de todos los pasos
-            if (!isset($_SESSION['expertise_step1']) || 
-                !isset($_SESSION['expertise_step2']) || 
-                !isset($_SESSION['expertise_step3']) ||
-                !isset($_SESSION['expertise_step4']) ||
-                !isset($_SESSION['expertise_step5']) ||
-                !isset($_SESSION['expertise_step6']) ||
-                !isset($_SESSION['expertise_step7']) ||
-                !isset($_SESSION['expertise_step8']) ||
-                !isset($_SESSION['expertise_step9']) ||
-                !isset($_SESSION['expertise_step10']) ||
-                !isset($_SESSION['expertise_step11'])) {
-                throw new Exception('Debe completar todos los pasos antes de guardar');
+            for ($i = 1; $i <= 11; $i++) {
+                if (!isset($_SESSION['expertise_step' . $i])) {
+                    throw new Exception('Debe completar todos los pasos antes de guardar');
+                }
             }
             
+            // Obtener datos de los pasos
+            $step1 = $_SESSION['expertise_step1'];
+            $step2 = $_SESSION['expertise_step2'];
+            $step3 = $_SESSION['expertise_step3'];
+            $step4 = $_SESSION['expertise_step4'];
+            $step5 = $_SESSION['expertise_step5'];
+            $step6 = $_SESSION['expertise_step6'];
+            $step7 = $_SESSION['expertise_step7'];
+            $step8 = $_SESSION['expertise_step8'];
+            $step9 = $_SESSION['expertise_step9'];
+            $step10 = $_SESSION['expertise_step10'];
+            $step11 = $_SESSION['expertise_step11'];
+            
+            // Obtener conexión a la base de datos
             $database = new Database();
             $db = $database->getConnection();
             
@@ -1308,19 +1227,6 @@ class ExpertiseController extends Controller {
             $db->beginTransaction();
             
             try {
-                // Obtener datos de los pasos
-                $step1 = $_SESSION['expertise_step1'];
-                $step2 = $_SESSION['expertise_step2'];
-                $step3 = $_SESSION['expertise_step3'];
-                $step4 = $_SESSION['expertise_step4'];
-                $step5 = $_SESSION['expertise_step5'];
-                $step6 = $_SESSION['expertise_step6'];
-                $step7 = $_SESSION['expertise_step7'];
-                $step8 = $_SESSION['expertise_step8'];
-                $step9 = $_SESSION['expertise_step9'];
-                $step10 = $_SESSION['expertise_step10'];
-                $step11 = $_SESSION['expertise_step11'];
-                
                 // Generar código único del peritaje
                 $codigo = 'PRT-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
                 

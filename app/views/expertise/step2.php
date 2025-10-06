@@ -29,20 +29,6 @@ renderExpertiseProgressIndicator(2);
 <div class="content-body">
     <div class="row justify-content-center">
         <div class="col-lg-11">
-            
-            <!-- Resumen del Paso 1 -->
-            <?php 
-            if (isset($_SESSION['expertise_step1'])) {
-                $step1 = $_SESSION['expertise_step1'];
-                renderPreviousStepSummary([
-                    ['label' => 'Fecha', 'value' => $step1['service_date'], 'icon' => 'fas fa-calendar', 'col' => 3],
-                    ['label' => 'Servicio #', 'value' => $step1['service_number'], 'icon' => 'fas fa-hashtag', 'col' => 3],
-                    ['label' => 'Para', 'value' => $step1['service_for'], 'icon' => 'fas fa-building', 'col' => 3],
-                    ['label' => 'Cliente', 'value' => $step1['client_name'] ?? 'ID: ' . $step1['client_id'], 'icon' => 'fas fa-user', 'col' => 3]
-                ]);
-            }
-            ?>
-            
             <!-- Formulario del Paso 2 -->
             <form id="step2Form" method="POST" action="<?= APP_URL ?>expertise/save-step2">
                 <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= $csrf_token ?>">

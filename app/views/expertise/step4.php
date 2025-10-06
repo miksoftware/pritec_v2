@@ -7,7 +7,9 @@
 if (!function_exists('renderContentHeader')) {
     require_once APP_PATH . '/helpers/view_helpers.php';
 }
-
+if (!function_exists('renderExpertiseProgressIndicator')) {
+    require_once APP_PATH . '/helpers/expertise_components.php';
+}
 // Configurar el header de contenido
 renderContentHeader('Nuevo Peritaje Completo', [
     'subtitle' => 'Paso 4 de 12: Inspección Visual Interna (Estructura)',
@@ -20,36 +22,11 @@ renderContentHeader('Nuevo Peritaje Completo', [
 ?>
 
 <?php renderExpertiseProgressIndicator(4); ?>
-</div>
 
 <!-- Content Body -->
 <div class="content-body">
     <div class="row justify-content-center">
         <div class="col-lg-11">
-            
-            <!-- Resumen de Pasos Anteriores -->
-            <?php if (isset($_SESSION['expertise_step1']) && isset($_SESSION['expertise_step2'])): ?>
-            <div class="alert alert-info mb-4">
-                <div class="row">
-                    <div class="col-md-3">
-                        <strong><i class="fas fa-calendar me-2"></i>Fecha:</strong>
-                        <?= htmlspecialchars($_SESSION['expertise_step1']['service_date']) ?>
-                    </div>
-                    <div class="col-md-3">
-                        <strong><i class="fas fa-hashtag me-2"></i>Servicio #:</strong>
-                        <?= htmlspecialchars($_SESSION['expertise_step1']['service_number']) ?>
-                    </div>
-                    <div class="col-md-3">
-                        <strong><i class="fas fa-car me-2"></i>Placa:</strong>
-                        <?= htmlspecialchars($_SESSION['expertise_step2']['placa']) ?>
-                    </div>
-                    <div class="col-md-3">
-                        <strong><i class="fas fa-clipboard-check me-2"></i>Carrocería:</strong>
-                        <?= isset($_SESSION['expertise_step3']['inspecciones']) ? count($_SESSION['expertise_step3']['inspecciones']) . ' inspeccionadas' : 'N/A' ?>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
             
             <!-- Formulario del Paso 4 -->
             <form id="step4Form" method="POST" action="<?= APP_URL ?>expertise/save-step4">

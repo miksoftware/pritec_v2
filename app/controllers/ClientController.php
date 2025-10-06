@@ -21,18 +21,31 @@ class ClientController extends Controller {
     }
     
     /**
-     * Mostrar lista de clientes
+     * Mostrar lista de clientes con paginación
      */
     public function index() {
         try {
-            $page = (int)($_GET['page'] ?? 1);
-            $limit = 10;
-            $search = $_GET['search'] ?? '';
-            $status = $_GET['status'] ?? '';
+            // Cargar helper de paginación
+            if (!function_exists('renderPagination')) {
+                require_once APP_PATH . '/helpers/index_helpers.php';
+            }
             
+            // Obtener parámetros de paginación y filtros
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $page = max(1, $page); // Asegurar que sea al menos 1
+            $limit = 20; // Clientes por página
+            $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+            $status = isset($_GET['status']) ? trim($_GET['status']) : '';
+            
+            // Obtener clientes paginados
             $clients = $this->clientModel->getAll($page, $limit, $search, $status);
+            
+            // Obtener total de registros
             $totalClients = $this->clientModel->count($search, $status);
             $totalPages = ceil($totalClients / $limit);
+            
+            // Generar HTML de paginación
+            $pagination = renderPagination($page, $totalPages, $totalClients, '', $limit);
             
             // Obtener estadísticas
             $stats = $this->clientModel->getStats();
@@ -45,6 +58,7 @@ class ClientController extends Controller {
                 'search' => $search,
                 'status' => $status,
                 'stats' => $stats,
+                'pagination' => $pagination,
                 'title' => 'Gestión de Clientes',
                 'csrf_token' => $this->generateCSRFToken()
             ];

@@ -125,9 +125,19 @@ function renderFiltersCard($filters) {
     foreach ($filters as $filter) {
         echo '<div class="col-md-' . ($filter['width'] ?? '4') . '">';
         echo '<div class="filter-group">';
-        echo '<label class="form-label">' . htmlspecialchars($filter['label']) . '</label>';
+        
+        // Solo mostrar label si existe
+        if (isset($filter['label']) && !empty($filter['label'])) {
+            echo '<label class="form-label">' . htmlspecialchars($filter['label']) . '</label>';
+        }
         
         switch ($filter['type']) {
+            case 'search':
+                echo '<div class="input-group">';
+                echo '<span class="input-group-text"><i class="fas fa-search"></i></span>';
+                echo '<input type="text" name="' . $filter['name'] . '" class="form-control" placeholder="' . ($filter['placeholder'] ?? 'Buscar...') . '" value="' . ($_GET[$filter['name']] ?? $filter['value'] ?? '') . '">';
+                echo '</div>';
+                break;
             case 'text':
                 echo '<input type="text" name="' . $filter['name'] . '" class="form-control" placeholder="' . ($filter['placeholder'] ?? '') . '" value="' . ($_GET[$filter['name']] ?? '') . '">';
                 break;
@@ -251,6 +261,112 @@ function renderMainTable($config) {
     }
     
     echo '</div>';
+}
+
+/**
+ * Genera HTML para la paginación
+ * 
+ * @param int $currentPage Página actual
+ * @param int $totalPages Total de páginas
+ * @param int $totalRecords Total de registros
+ * @param string $baseUrl URL base (sin parámetros)
+ * @param int $perPage Registros por página (para calcular el rango)
+ * @return string HTML de la paginación
+ */
+function renderPagination($currentPage, $totalPages, $totalRecords, $baseUrl = '', $perPage = 20) {
+    // Siempre mostrar información, incluso con 1 página
+    if ($totalRecords == 0) {
+        return '';
+    }
+    
+    // Mantener parámetros GET existentes excepto 'page'
+    $params = $_GET;
+    unset($params['page']);
+    $queryString = !empty($params) ? '&' . http_build_query($params) : '';
+    
+    $html = '<div class="card-footer">';
+    $html .= '<div class="pagination-container">';
+    
+    // Información de registros
+    $from = ($currentPage - 1) * $perPage + 1;
+    $to = min($currentPage * $perPage, $totalRecords);
+    $html .= '<div class="pagination-info">';
+    $html .= '<span class="text-muted">Mostrando <strong>' . $from . '</strong> a <strong>' . $to . '</strong> de <strong>' . $totalRecords . '</strong> registro(s)</span>';
+    $html .= '</div>';
+    
+    // Solo mostrar botones de paginación si hay más de 1 página
+    if ($totalPages > 1) {
+        // Botones de paginación
+        $html .= '<nav aria-label="Paginación">';
+        $html .= '<ul class="pagination pagination-sm mb-0">';
+    
+    // Botón Primera página
+    if ($currentPage > 1) {
+        $html .= '<li class="page-item">';
+        $html .= '<a class="page-link" href="?' . $queryString . '&page=1" aria-label="Primera">';
+        $html .= '<i class="fas fa-angle-double-left"></i>';
+        $html .= '</a>';
+        $html .= '</li>';
+    }
+    
+    // Botón Anterior
+    if ($currentPage > 1) {
+        $html .= '<li class="page-item">';
+        $html .= '<a class="page-link" href="?' . $queryString . '&page=' . ($currentPage - 1) . '" aria-label="Anterior">';
+        $html .= '<i class="fas fa-angle-left"></i>';
+        $html .= '</a>';
+        $html .= '</li>';
+    }
+    
+    // Números de página (mostrar 5 páginas alrededor de la actual)
+    $start = max(1, $currentPage - 2);
+    $end = min($totalPages, $currentPage + 2);
+    
+    if ($start > 1) {
+        $html .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
+    }
+    
+    for ($i = $start; $i <= $end; $i++) {
+        $active = $i == $currentPage ? 'active' : '';
+        $html .= '<li class="page-item ' . $active . '">';
+        if ($i == $currentPage) {
+            $html .= '<span class="page-link">' . $i . '</span>';
+        } else {
+            $html .= '<a class="page-link" href="?' . $queryString . '&page=' . $i . '">' . $i . '</a>';
+        }
+        $html .= '</li>';
+    }
+    
+    if ($end < $totalPages) {
+        $html .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
+    }
+    
+    // Botón Siguiente
+    if ($currentPage < $totalPages) {
+        $html .= '<li class="page-item">';
+        $html .= '<a class="page-link" href="?' . $queryString . '&page=' . ($currentPage + 1) . '" aria-label="Siguiente">';
+        $html .= '<i class="fas fa-angle-right"></i>';
+        $html .= '</a>';
+        $html .= '</li>';
+    }
+    
+    // Botón Última página
+    if ($currentPage < $totalPages) {
+        $html .= '<li class="page-item">';
+        $html .= '<a class="page-link" href="?' . $queryString . '&page=' . $totalPages . '" aria-label="Última">';
+        $html .= '<i class="fas fa-angle-double-right"></i>';
+        $html .= '</a>';
+        $html .= '</li>';
+    }
+    
+    $html .= '</ul>';
+    $html .= '</nav>';
+    } // Cierre del if ($totalPages > 1)
+    
+    $html .= '</div>';
+    $html .= '</div>';
+    
+    return $html;
 }
 
 /**

@@ -95,6 +95,62 @@ class User extends Model {
     }
     
     /**
+     * Obtener usuarios con paginación y búsqueda
+     */
+    public function getAllWithPagination($page = 1, $limit = 20, $search = '') {
+        try {
+            $offset = ($page - 1) * $limit;
+            $params = [];
+            
+            $sql = "SELECT id, username, email, full_name, status, created_at, last_login 
+                    FROM {$this->table}";
+            
+            // Agregar búsqueda si existe
+            if (!empty($search)) {
+                $sql .= " WHERE username LIKE ? OR email LIKE ? OR full_name LIKE ?";
+                $searchParam = "%{$search}%";
+                $params = [$searchParam, $searchParam, $searchParam];
+            }
+            
+            $sql .= " ORDER BY created_at DESC LIMIT {$limit} OFFSET {$offset}";
+            
+            $stmt = $this->db->query($sql, $params);
+            return $stmt->fetchAll();
+            
+        } catch (Exception $e) {
+            error_log("Error getting users with pagination: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Contar total de usuarios (con filtro de búsqueda opcional)
+     */
+    public function count($search = '') {
+        try {
+            $params = [];
+            
+            $sql = "SELECT COUNT(*) as total FROM {$this->table}";
+            
+            // Agregar búsqueda si existe
+            if (!empty($search)) {
+                $sql .= " WHERE username LIKE ? OR email LIKE ? OR full_name LIKE ?";
+                $searchParam = "%{$search}%";
+                $params = [$searchParam, $searchParam, $searchParam];
+            }
+            
+            $stmt = $this->db->query($sql, $params);
+            $result = $stmt->fetch();
+            
+            return (int)$result['total'];
+            
+        } catch (Exception $e) {
+            error_log("Error counting users: " . $e->getMessage());
+            return 0;
+        }
+    }
+    
+    /**
      * Buscar usuario por ID
      */
     public function findById($id) {

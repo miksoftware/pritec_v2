@@ -7,6 +7,9 @@
 if (!function_exists('renderContentHeader')) {
     require_once APP_PATH . '/helpers/view_helpers.php';
 }
+if (!function_exists('renderExpertiseProgressIndicator')) {
+    require_once APP_PATH . '/helpers/expertise_components.php';
+}
 
 // Configurar el header de contenido
 renderContentHeader('Nuevo Peritaje Completo', [
@@ -20,37 +23,11 @@ renderContentHeader('Nuevo Peritaje Completo', [
 ?>
 
 <?php renderExpertiseProgressIndicator(7); ?>
-</div>
 
 <!-- Content Body -->
 <div class="content-body">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            
-            <!-- Resumen de Pasos Anteriores -->
-            <?php 
-            if (isset($_SESSION['expertise_step1']) && isset($_SESSION['expertise_step2'])) {
-                $step1 = $_SESSION['expertise_step1'];
-                $step2 = $_SESSION['expertise_step2'];
-                $step3 = $_SESSION['expertise_step3'] ?? [];
-                $step4 = $_SESSION['expertise_step4'] ?? [];
-                $step5 = $_SESSION['expertise_step5'] ?? [];
-                
-                $total_inspecciones = 0;
-                if (!empty($step3['inspecciones'])) $total_inspecciones += count($step3['inspecciones']);
-                if (!empty($step4['inspecciones'])) $total_inspecciones += count($step4['inspecciones']);
-                if (!empty($step5['inspecciones'])) $total_inspecciones += count($step5['inspecciones']);
-                
-                renderPreviousStepSummary([
-                    ['label' => 'Placa', 'value' => $step2['placa'], 'icon' => 'fas fa-car', 'col' => 2],
-                    ['label' => 'Marca', 'value' => $step2['marca'] ?? 'N/A', 'icon' => 'fas fa-tag', 'col' => 2],
-                    ['label' => 'Modelo', 'value' => $step2['modelo'] ?? 'N/A', 'icon' => 'fas fa-calendar', 'col' => 2],
-                    ['label' => 'Inspecciones', 'value' => $total_inspecciones . ' piezas', 'icon' => 'fas fa-clipboard-check', 'col' => 3],
-                    ['label' => 'Progreso', 'value' => 'Paso ' . $stepNum . ' de 12', 'icon' => 'fas fa-tasks', 'col' => 3]
-                ], 'alert-success');
-            }
-            ?>
-            
             <!-- Formulario del Paso 7 -->
             <form id="step7Form" method="POST" action="<?= APP_URL ?>expertise/save-step7">
                 <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= $csrf_token ?>">

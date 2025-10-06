@@ -12,8 +12,26 @@ renderIndexView([
     'subtitle' => 'Gestiona los diferentes tipos de vehículos del sistema',
     'icon' => 'fas fa-car',
     'module_name' => 'tipos_vehiculos',
-    'show_stats' => false,
-    'show_filters' => false,
+    'show_stats' => true,
+    'stats' => [
+        [
+            'title' => 'Total Tipos',
+            'value' => $totalRecords ?? 0,
+            'icon' => 'fas fa-car',
+            'color' => 'primary'
+        ]
+    ],
+    'show_filters' => true,
+    'filters' => [
+        [
+            'type' => 'search',
+            'name' => 'search',
+            'placeholder' => 'Buscar por nombre o descripción...',
+            'value' => $search ?? '',
+            'width' => '12'
+        ]
+    ],
+    'pagination' => $pagination ?? null,
     'data' => $vehicleTypes ?? [],
     'columns' => [
         [

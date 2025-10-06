@@ -7,7 +7,9 @@
 if (!function_exists('renderContentHeader')) {
     require_once APP_PATH . '/helpers/view_helpers.php';
 }
-
+if (!function_exists('renderExpertiseProgressIndicator')) {
+    require_once APP_PATH . '/helpers/expertise_components.php';
+}
 // Configurar el header de contenido
 renderContentHeader('Nuevo Peritaje Completo', [
     'subtitle' => 'Paso 12 de 12: Resumen Final',
@@ -20,7 +22,6 @@ renderContentHeader('Nuevo Peritaje Completo', [
 ?>
 
 <?php renderExpertiseProgressIndicator(12); ?>
-</div>
 
 <!-- Content Body -->
 <div class="content-body">

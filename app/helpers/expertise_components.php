@@ -97,37 +97,6 @@ function renderExpertiseProgressIndicator($current_step = 1) {
 }
 
 /**
- * Componente: Resumen de Paso Anterior (Información compacta)
- * Renderiza un resumen visual del paso completado anteriormente
- * 
- * @param array $data Datos a mostrar
- * @param string $alert_class Clase de Bootstrap para el alert (por defecto 'alert-info')
- * @return void
- */
-function renderPreviousStepSummary($data, $alert_class = 'alert-info') {
-    if (empty($data)) {
-        return;
-    }
-    ?>
-    <div class="alert <?= $alert_class ?> mb-4">
-        <div class="row">
-            <?php foreach ($data as $item): ?>
-                <div class="col-md-<?= $item['col'] ?? 3 ?>">
-                    <strong>
-                        <?php if (!empty($item['icon'])): ?>
-                            <i class="<?= $item['icon'] ?> me-2"></i>
-                        <?php endif; ?>
-                        <?= htmlspecialchars($item['label']) ?>:
-                    </strong>
-                    <?= htmlspecialchars($item['value']) ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php
-}
-
-/**
  * Componente: Card Header para Secciones
  * Renderiza un header consistente para las cards de cada paso
  * 

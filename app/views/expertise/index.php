@@ -159,7 +159,7 @@ renderIndexView([
     'create_url' => APP_URL . 'expertise/create',
     'create_text' => 'Crear Primer Peritaje',
     'table_id' => 'expertisesTable',
-    'pagination' => null,
+    'pagination' => $pagination ?? null,
     'custom_scripts' => '
     <script>
     // Función para eliminar peritaje
