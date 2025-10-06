@@ -121,7 +121,7 @@ renderIndexView([
             'type' => 'actions',
             'buttons' => [
                 [
-                    'url' => APP_URL . 'expertise/view/{id}',
+                    'url' => APP_URL . 'expertise/show/{id}',
                     'class' => 'btn-outline-info',
                     'icon' => 'fas fa-eye',
                     'title' => 'Ver detalles'

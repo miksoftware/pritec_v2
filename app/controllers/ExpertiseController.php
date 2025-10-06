@@ -1190,6 +1190,192 @@ class ExpertiseController extends Controller {
     }
     
     /**
+     * Ver detalles de un peritaje (reutiliza vista del paso 12)
+     */
+    public function show($id) {
+        try {
+            // Validar ID
+            if (empty($id) || !is_numeric($id)) {
+                throw new Exception('ID de peritaje inválido');
+            }
+            
+            // Obtener el peritaje con todas sus relaciones
+            $expertise = $this->expertiseModel->getByIdWithRelations($id);
+            
+            if (!$expertise) {
+                throw new Exception('Peritaje no encontrado');
+            }
+            
+            // Cargar los datos en sesión temporalmente para que la vista del paso 12 los pueda leer
+            // Guardamos las sesiones existentes para no perder el progreso del usuario
+            $backup_sessions = [];
+            for ($i = 1; $i <= 11; $i++) {
+                if (isset($_SESSION['expertise_step' . $i])) {
+                    $backup_sessions['expertise_step' . $i] = $_SESSION['expertise_step' . $i];
+                }
+            }
+            
+            // Marcar modo visualización
+            $_SESSION['expertise_view_mode'] = true;
+            $_SESSION['expertise_view_id'] = $id;
+            
+            // Paso 1: Información del Servicio y Cliente
+            $_SESSION['expertise_step1'] = [
+                'service_date' => $expertise['service_date'],
+                'service_number' => $expertise['service_number'],
+                'service_for' => $expertise['service_for'],
+                'client_id' => $expertise['client_id'],
+                'client_name' => $expertise['cliente_nombre'] . ' ' . $expertise['cliente_apellido']
+            ];
+            
+            // Paso 2: Datos del Vehículo
+            $_SESSION['expertise_step2'] = [
+                'tipo_vehiculo' => $expertise['vehicle_type_id'],
+                'tipo_vehiculo_nombre' => $expertise['tipo_vehiculo_nombre'],
+                'placa' => $expertise['placa'],
+                'marca' => $expertise['marca'],
+                'linea' => $expertise['linea'],
+                'modelo' => $expertise['modelo'],
+                'color' => $expertise['color'],
+                'kilometraje' => $expertise['kilometraje'] ?? '',
+                'vin' => $expertise['vin'] ?? '',
+                'numero_motor' => $expertise['numero_motor'] ?? '',
+                'numero_chasis' => $expertise['numero_chasis'] ?? '',
+                'tipo_combustible' => $expertise['tipo_combustible'] ?? '',
+                'carroceria' => $expertise['carroceria'] ?? '',
+                'clase' => $expertise['clase'] ?? '',
+                'cilindraje' => $expertise['cilindraje'] ?? '',
+                'capacidad_pasajeros' => $expertise['capacidad_pasajeros'] ?? ''
+            ];
+            
+            // Pasos 3, 4, 5: Inspecciones (cargar datos básicos)
+            // Las inspecciones se cargarán directamente desde el modelo en la vista
+            $_SESSION['expertise_step3'] = [
+                'inspecciones' => [],
+                'observaciones_carroceria' => $expertise['observaciones_carroceria'] ?? ''
+            ];
+            
+            $_SESSION['expertise_step4'] = [
+                'inspecciones' => [],
+                'observaciones_estructura' => $expertise['observaciones_estructura'] ?? ''
+            ];
+            
+            $_SESSION['expertise_step5'] = [
+                'inspecciones' => [],
+                'observaciones_chasis' => $expertise['observaciones_chasis'] ?? ''
+            ];
+            
+            // Paso 6: Llantas
+            $_SESSION['expertise_step6'] = [
+                'llanta_anterior_izquierda' => $expertise['llanta_anterior_izquierda'] ?? '',
+                'llanta_anterior_derecha' => $expertise['llanta_anterior_derecha'] ?? '',
+                'llanta_posterior_izquierda' => $expertise['llanta_posterior_izquierda'] ?? '',
+                'llanta_posterior_derecha' => $expertise['llanta_posterior_derecha'] ?? '',
+                'observaciones_llantas' => $expertise['observaciones_llantas'] ?? ''
+            ];
+            
+            // Paso 7: Amortiguadores
+            $_SESSION['expertise_step7'] = [
+                'amortiguador_anterior_izquierdo' => $expertise['amortiguador_anterior_izquierdo'] ?? '',
+                'amortiguador_anterior_derecho' => $expertise['amortiguador_anterior_derecho'] ?? '',
+                'amortiguador_posterior_izquierdo' => $expertise['amortiguador_posterior_izquierdo'] ?? '',
+                'amortiguador_posterior_derecho' => $expertise['amortiguador_posterior_derecho'] ?? '',
+                'observaciones_amortiguadores' => $expertise['observaciones_amortiguadores'] ?? ''
+            ];
+            
+            // Paso 8: Batería
+            $_SESSION['expertise_step8'] = [
+                'prueba_bateria' => $expertise['prueba_bateria'] ?? '',
+                'prueba_arranque' => $expertise['prueba_arranque'] ?? '',
+                'carga_bateria' => $expertise['carga_bateria'] ?? '',
+                'observaciones_bateria' => $expertise['observaciones_bateria'] ?? ''
+            ];
+            
+            // Paso 9: Motor y Sistemas (31 campos)
+            $_SESSION['expertise_step9'] = [
+                'estado_aceite_motor' => $expertise['estado_aceite_motor'] ?? '',
+                'estado_refrigerante' => $expertise['estado_refrigerante'] ?? '',
+                'estado_liquido_frenos' => $expertise['estado_liquido_frenos'] ?? '',
+                'estado_liquido_direccion' => $expertise['estado_liquido_direccion'] ?? '',
+                'estado_transmision' => $expertise['estado_transmision'] ?? '',
+                'estado_clutch' => $expertise['estado_clutch'] ?? '',
+                'estado_filtro_aire' => $expertise['estado_filtro_aire'] ?? '',
+                'estado_filtro_combustible' => $expertise['estado_filtro_combustible'] ?? '',
+                'estado_bujias' => $expertise['estado_bujias'] ?? '',
+                'estado_cables' => $expertise['estado_cables'] ?? '',
+                'estado_banda_accesorios' => $expertise['estado_banda_accesorios'] ?? '',
+                'estado_banda_tiempo' => $expertise['estado_banda_tiempo'] ?? '',
+                'estado_mangueras' => $expertise['estado_mangueras'] ?? '',
+                'estado_luces_delanteras' => $expertise['estado_luces_delanteras'] ?? '',
+                'estado_luces_traseras' => $expertise['estado_luces_traseras'] ?? '',
+                'estado_sistema_escape' => $expertise['estado_sistema_escape'] ?? '' ?? '',
+                'estado_embrague' => $expertise['estado_embrague'] ?? '',
+                'estado_freno_mano' => $expertise['estado_freno_mano'] ?? '',
+                'estado_pedal_freno' => $expertise['estado_pedal_freno'] ?? '',
+                'estado_pedal_clutch' => $expertise['estado_pedal_clutch'] ?? '',
+                'estado_limpiabrisas' => $expertise['estado_limpiabrisas'] ?? '',
+                'estado_bocina' => $expertise['estado_bocina'] ?? '',
+                'estado_espejos' => $expertise['estado_espejos'] ?? '',
+                'estado_cinturones' => $expertise['estado_cinturones'] ?? '',
+                'estado_airbags' => $expertise['estado_airbags'] ?? '',
+                'estado_tapiceria' => $expertise['estado_tapiceria'] ?? '',
+                'estado_panel' => $expertise['estado_panel'] ?? '',
+                'estado_aire_acondicionado' => $expertise['estado_aire_acondicionado'] ?? '',
+                'tension_correa_alternador' => $expertise['tension_correa_alternador'] ?? '',
+                'tension_correa_direccion' => $expertise['tension_correa_direccion'] ?? '',
+                'tension_correa_aire' => $expertise['tension_correa_aire'] ?? '',
+                'observaciones_motor' => $expertise['observaciones_motor'] ?? '',
+                'observaciones_interior' => $expertise['observaciones_interior'] ?? ''
+            ];
+            
+            // Paso 10: Fugas y Niveles (19 campos)
+            $_SESSION['expertise_step10'] = [
+                'fuga_aceite_motor' => $expertise['fuga_aceite_motor'] ?? '',
+                'fuga_refrigerante' => $expertise['fuga_refrigerante'] ?? '',
+                'fuga_liquido_frenos' => $expertise['fuga_liquido_frenos'] ?? '',
+                'fuga_liquido_direccion' => $expertise['fuga_liquido_direccion'] ?? '',
+                'fuga_transmision' => $expertise['fuga_transmision'] ?? '',
+                'fuga_combustible' => $expertise['fuga_combustible'] ?? '',
+                'nivel_aceite_motor' => $expertise['nivel_aceite_motor'] ?? '',
+                'nivel_refrigerante' => $expertise['nivel_refrigerante'] ?? '',
+                'nivel_liquido_frenos' => $expertise['nivel_liquido_frenos'] ?? '',
+                'nivel_liquido_direccion' => $expertise['nivel_liquido_direccion'] ?? '',
+                'nivel_liquido_transmision' => $expertise['nivel_liquido_transmision'] ?? '',
+                'nivel_liquido_limpiabrisas' => $expertise['nivel_liquido_limpiabrisas'] ?? '',
+                'presion_neumatico_ai' => $expertise['presion_neumatico_ai'] ?? '',
+                'presion_neumatico_ad' => $expertise['presion_neumatico_ad'] ?? '',
+                'presion_neumatico_pi' => $expertise['presion_neumatico_pi'] ?? '',
+                'presion_neumatico_pd' => $expertise['presion_neumatico_pd'] ?? '',
+                'presion_neumatico_repuesto' => $expertise['presion_neumatico_repuesto'] ?? '',
+                'estado_herramientas' => $expertise['estado_herramientas'] ?? '',
+                'estado_gato' => $expertise['estado_gato'] ?? '',
+                'prueba_ruta' => $expertise['prueba_ruta'] ?? '',
+                'observaciones_fugas' => $expertise['observaciones_fugas'] ?? ''
+            ];
+            
+            // Paso 11: Fotos
+            $_SESSION['expertise_step11'] = [
+                'fotos' => [],
+                'observaciones_fotograficas' => $expertise['observaciones_fotograficas'] ?? ''
+            ];
+            
+            $data = [
+                'title' => 'Detalles del Peritaje #' . $expertise['service_number'],
+                'csrf_token' => $this->generateCSRFToken(),
+                'expertise_id' => $id,
+                'view_mode' => true, // Flag para indicar que estamos en modo vista
+                'backup_sessions' => $backup_sessions // Para restaurar después
+            ];
+            
+            $this->view('expertise/step12', $data);
+            
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            $this->redirect('expertise');
+        }
+    }
+    
+    /**
      * Guardar peritaje completo en la base de datos
      */
     public function saveFinal() {

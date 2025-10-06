@@ -10,30 +10,70 @@ if (!function_exists('renderContentHeader')) {
 if (!function_exists('renderExpertiseProgressIndicator')) {
     require_once APP_PATH . '/helpers/expertise_components.php';
 }
+
+// Detectar si estamos en modo visualización
+$view_mode = isset($view_mode) && $view_mode === true;
+$expertise_id = $expertise_id ?? null;
+
 // Configurar el header de contenido
-renderContentHeader('Nuevo Peritaje Completo', [
-    'subtitle' => 'Paso 12 de 12: Resumen Final',
-    'icon' => 'fas fa-check-circle',
-    'breadcrumbs' => createBreadcrumbs([
-        ['text' => 'Peritajes', 'url' => APP_URL . 'expertise'],
-        ['text' => 'Nuevo Peritaje Completo', 'url' => null]
-    ])
-]);
+if ($view_mode) {
+    renderContentHeader('Detalles del Peritaje', [
+        'subtitle' => 'Resumen completo del peritaje',
+        'icon' => 'fas fa-eye',
+        'breadcrumbs' => createBreadcrumbs([
+            ['text' => 'Peritajes', 'url' => APP_URL . 'expertise'],
+            ['text' => 'Detalles', 'url' => null]
+        ])
+    ]);
+} else {
+    renderContentHeader('Nuevo Peritaje Completo', [
+        'subtitle' => 'Paso 12 de 12: Resumen Final',
+        'icon' => 'fas fa-check-circle',
+        'breadcrumbs' => createBreadcrumbs([
+            ['text' => 'Peritajes', 'url' => APP_URL . 'expertise'],
+            ['text' => 'Nuevo Peritaje Completo', 'url' => null]
+        ])
+    ]);
+}
 ?>
 
-<?php renderExpertiseProgressIndicator(12); ?>
+<?php if (!$view_mode): ?>
+    <?php renderExpertiseProgressIndicator(12); ?>
+<?php endif; ?>
 
 <!-- Content Body -->
 <div class="content-body">
     <div class="row justify-content-center">
         <div class="col-lg-11">
             
-            <!-- Alerta de éxito -->
-            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>¡Todos los pasos completados!</h5>
-                <p class="mb-0">Ha completado exitosamente todos los 11 pasos del peritaje. Revise el resumen a continuación y haga clic en "Guardar Peritaje" para finalizar.</p>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+            <?php if ($view_mode): ?>
+                <!-- Alerta de información (modo visualización) -->
+                <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Visualización de Peritaje</h5>
+                    <p class="mb-0">Está viendo los detalles completos del peritaje. Puede generar el PDF o volver al listado.</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <!-- Botones de acción en modo visualización -->
+                <div class="mb-4 d-flex gap-2">
+                    <a href="<?= APP_URL ?>expertise" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al Listado
+                    </a>
+                    <a href="<?= APP_URL ?>expertise/pdf/<?= $expertise_id ?>" class="btn btn-danger" target="_blank">
+                        <i class="fas fa-file-pdf me-2"></i>Generar PDF
+                    </a>
+                    <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Editar Peritaje
+                    </a>
+                </div>
+            <?php else: ?>
+                <!-- Alerta de éxito (modo creación) -->
+                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>¡Todos los pasos completados!</h5>
+                    <p class="mb-0">Ha completado exitosamente todos los 11 pasos del peritaje. Revise el resumen a continuación y haga clic en "Guardar Peritaje" para finalizar.</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
             
             <!-- Formulario de confirmación -->
             <form id="step12Form" method="POST" action="<?= APP_URL ?>expertise/save-final">
@@ -61,9 +101,11 @@ renderContentHeader('Nuevo Peritaje Completo', [
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Paso 1: Información del Servicio</strong>
                         </div>
+                        <?php if (!$view_mode): ?>
                         <a href="<?= APP_URL ?>expertise/create" class="btn btn-sm btn-light">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -316,7 +358,8 @@ renderContentHeader('Nuevo Peritaje Completo', [
                     </div>
                 </div>
                 
-                <!-- Botones Finales -->
+                <?php if (!$view_mode): ?>
+                <!-- Botones Finales (solo en modo creación) -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center">
@@ -332,6 +375,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
                 
             </form>
             
@@ -339,7 +383,8 @@ renderContentHeader('Nuevo Peritaje Completo', [
     </div>
 </div>
 
-<!-- Script para confirmación -->
+<?php if (!$view_mode): ?>
+<!-- Script para confirmación (solo en modo creación) -->
 <script>
 document.getElementById('step12Form').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -352,6 +397,21 @@ document.getElementById('step12Form').addEventListener('submit', function(e) {
     }
 });
 </script>
+<?php endif; ?>
+
+<?php
+// Restaurar sesiones originales si estamos en modo visualización
+if ($view_mode && isset($backup_sessions)) {
+    // Limpiar sesiones temporales
+    unset($_SESSION['expertise_view_mode']);
+    unset($_SESSION['expertise_view_id']);
+    
+    // Restaurar sesiones originales
+    foreach ($backup_sessions as $key => $value) {
+        $_SESSION[$key] = $value;
+    }
+}
+?>
 
 <?php 
 $content = ob_get_clean();
