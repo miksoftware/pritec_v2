@@ -12,6 +12,14 @@ RewriteEngine On
 # Bloquear acceso a directorios del sistema
 RewriteRule ^(app|config|database)/ - [F,L]
 
+# Alternativa dentro del .htaccess si no puedes modificar httpd.conf:
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(png|jpg|jpeg|gif|webp|pdf|svg)$">
+        Require all granted
+    </FilesMatch>
+</IfModule>
+
+
 # Redireccionar todas las peticiones al index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

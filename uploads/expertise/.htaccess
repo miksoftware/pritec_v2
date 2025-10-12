@@ -1,0 +1,14 @@
+# Prevenir listado de directorios
+Options -Indexes
+
+# Permitir solo imágenes
+<FilesMatch "\.(jpg|jpeg|png|gif)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Denegar acceso a otros tipos de archivos
+<FilesMatch "\.(?!(jpg|jpeg|png|gif)$)">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

@@ -1410,8 +1410,8 @@ class ExpertiseController extends Controller {
             
             $fotos_guardadas = [];
             
-            // Crear directorio para fotos si no existe (usar ruta correcta)
-            $upload_dir = __DIR__ . '/../../public/uploads/expertise/';
+            // Crear directorio para fotos si no existe (usar ruta accesible desde web)
+            $upload_dir = __DIR__ . '/../../uploads/expertise/';
             
             // Normalizar ruta para Windows
             $upload_dir = str_replace('\\', '/', $upload_dir);
@@ -1464,7 +1464,7 @@ class ExpertiseController extends Controller {
                     $fotos_guardadas[] = [
                         'nombre_original' => $file_name,
                         'nombre_guardado' => $nuevo_nombre,
-                        'ruta' => 'public/uploads/expertise/' . $nuevo_nombre,
+                        'ruta' => 'uploads/expertise/' . $nuevo_nombre,
                         'size' => $file_size,
                         'extension' => $file_ext
                     ];
