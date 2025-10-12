@@ -855,21 +855,71 @@ class Expertise extends Model {
     }
     
     /**
-     * Actualizar contador de fotos del Paso 11
+     * Actualizar datos del paso 11 (Fijación Fotográfica)
      * @param int $id ID del expertise
-     * @param int $totalFotos Total de fotos
+     * @param array $data Array con información completa de las fotos
      * @return bool True si se actualizó correctamente
      */
-    public function updateStep11($id, $totalFotos) {
-        $sql = "UPDATE expertises SET
-            total_fotos = ?,
-            current_step = 11,
-            status = 'in_progress',
-            updated_at = NOW()
-        WHERE id = ?";
-        
-        $stmt = $this->db->getConnection()->prepare($sql);
-        return $stmt->execute([$totalFotos, $id]);
+    public function updateStep11($id, $data) {
+        try {
+            $db = $this->db->getConnection();
+            
+            // Iniciar transacción
+            $db->beginTransaction();
+            
+            // 1. Eliminar fotos anteriores si existen
+            $sqlDelete = "DELETE FROM expertise_photos WHERE expertise_id = ?";
+            $stmtDelete = $db->prepare($sqlDelete);
+            $stmtDelete->execute([$id]);
+            
+            // 2. Insertar nuevas fotos
+            $fotos = $data['fotos'] ?? [];
+            $totalFotos = count($fotos);
+            
+            if ($totalFotos > 0) {
+                $sqlInsert = "INSERT INTO expertise_photos 
+                    (expertise_id, nombre_original, nombre_guardado, ruta, extension, size, orden) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                $stmtInsert = $db->prepare($sqlInsert);
+                
+                foreach ($fotos as $index => $foto) {
+                    $orden = $index + 1;
+                    $stmtInsert->execute([
+                        $id,
+                        $foto['nombre_original'],
+                        $foto['nombre_guardado'],
+                        $foto['ruta'],
+                        $foto['extension'],
+                        $foto['size'],
+                        $orden
+                    ]);
+                }
+            }
+            
+            // 3. Actualizar expertise con el total de fotos y estado
+            $sqlUpdate = "UPDATE expertises SET
+                total_fotos = ?,
+                current_step = 11,
+                status = 'in_progress',
+                updated_at = NOW()
+            WHERE id = ?";
+            
+            $stmtUpdate = $db->prepare($sqlUpdate);
+            $stmtUpdate->execute([$totalFotos, $id]);
+            
+            // Confirmar transacción
+            $db->commit();
+            
+            return true;
+            
+        } catch (Exception $e) {
+            // Revertir transacción en caso de error
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            error_log("Error en updateStep11: " . $e->getMessage());
+            return false;
+        }
     }
     
     /**

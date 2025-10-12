@@ -339,13 +339,25 @@ if ($view_mode) {
                         </div>
                         
                         <?php if (!empty($step11['fotos'])): ?>
+                        <!-- DEBUG: Ver estructura de datos -->
+                        <?php if (isset($_GET['debug'])): ?>
+                        <div class="alert alert-info">
+                            <pre><?php print_r($step11['fotos']); ?></pre>
+                        </div>
+                        <?php endif; ?>
                         <div class="row g-2">
                             <?php foreach (array_slice($step11['fotos'], 0, 8) as $foto): ?>
                             <div class="col-md-3 col-sm-4 col-6">
-                                <img src="<?= ASSETS_URL . $foto['ruta'] ?>" 
-                                     class="img-thumbnail" 
-                                     alt="<?= htmlspecialchars($foto['nombre_original']) ?>"
-                                     style="height: 120px; width: 100%; object-fit: cover;">
+                                <div class="position-relative">
+                                    <img src="<?= APP_URL . $foto['ruta'] ?>" 
+                                         class="img-thumbnail" 
+                                         alt="<?= htmlspecialchars($foto['nombre_original']) ?>"
+                                         style="height: 120px; width: 100%; object-fit: cover; cursor: pointer;"
+                                         onclick="window.open('<?= APP_URL . $foto['ruta'] ?>', '_blank')">
+                                    <small class="d-block text-center text-truncate mt-1" style="font-size: 0.7rem;">
+                                        <?= htmlspecialchars($foto['nombre_original']) ?>
+                                    </small>
+                                </div>
                             </div>
                             <?php endforeach; ?>
                         </div>
@@ -354,6 +366,11 @@ if ($view_mode) {
                             <small>+ <?= count($step11['fotos']) - 8 ?> fotografías más</small>
                         </p>
                         <?php endif; ?>
+                        <?php else: ?>
+                        <div class="alert alert-warning text-center mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No se encontraron fotografías adjuntas
+                        </div>
                         <?php endif; ?>
                     </div>
                 </div>

@@ -68,6 +68,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['prueba_bateria'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Estado de la batería</small>
                             </div>
@@ -85,6 +86,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['prueba_arranque'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Capacidad de arranque</small>
                             </div>
@@ -102,6 +104,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['carga_bateria'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Nivel de carga actual</small>
                             </div>
@@ -154,7 +157,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     class="form-control" 
                                     name="observaciones_bateria" 
                                     rows="4"
-                                    placeholder="Ingrese observaciones sobre el estado de la batería (edad, sulfatación, conexiones, voltaje, etc.)..."></textarea>
+                                    placeholder="Ingrese observaciones sobre el estado de la batería (edad, sulfatación, conexiones, voltaje, etc.)..."><?= htmlspecialchars($expertise['observaciones_bateria'] ?? '') ?></textarea>
                             </div>
                         </div>
                         
