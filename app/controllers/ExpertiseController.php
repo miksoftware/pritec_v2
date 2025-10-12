@@ -855,25 +855,49 @@ class ExpertiseController extends Controller {
      * Mostrar el paso 7: Inspección de Amortiguadores
      */
     public function step7() {
-        // Verificar que existan los pasos anteriores
-        if (!isset($_SESSION['expertise_step1']) || 
-            !isset($_SESSION['expertise_step2']) || 
-            !isset($_SESSION['expertise_step3']) ||
-            !isset($_SESSION['expertise_step4']) ||
-            !isset($_SESSION['expertise_step5']) ||
-            !isset($_SESSION['expertise_step6'])) {
-            $_SESSION['error'] = 'Debe completar los pasos anteriores primero';
-            $this->redirect('expertise/create');
-            return;
+        try {
+            // Obtener expertise_id de la sesión o recuperar último borrador
+            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            
+            if (!$expertiseId) {
+                // Intentar recuperar último borrador del usuario
+                $lastDraft = $this->expertiseModel->getLastDraft($_SESSION['user_id']);
+                
+                if (!$lastDraft) {
+                    $_SESSION['error'] = 'No se encontró un peritaje en progreso. Por favor inicie uno nuevo.';
+                    $this->redirect('expertise/create');
+                    return;
+                }
+                
+                $expertiseId = $lastDraft['id'];
+                $_SESSION['expertise_id'] = $expertiseId;
+            }
+            
+            // Obtener datos del expertise desde BD
+            $expertise = $this->expertiseModel->getByIdComplete($expertiseId);
+            
+            if (!$expertise) {
+                $_SESSION['error'] = 'No se encontró el peritaje';
+                $this->redirect('expertise/create');
+            }
+            
+            // Verificar que el usuario sea el dueño
+            if ($expertise['user_id'] != $_SESSION['user_id']) {
+                $_SESSION['error'] = 'No tiene permisos para editar este peritaje';
+                $this->redirect('expertise');
+            }
+            
+            $data = [
+                'csrf_token' => $this->generateCsrfToken(),
+                'expertise' => $expertise
+            ];
+            
+            $this->view('expertise/step7', $data);
+            
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            $this->redirect('expertise/step6');
         }
-        
-        // Generar token CSRF
-        $csrf_token = $this->generateCsrfToken();
-        
-        // Cargar la vista del paso 7
-        $this->view('expertise/step7', [
-            'csrf_token' => $csrf_token
-        ]);
     }
     
     /**
@@ -886,14 +910,11 @@ class ExpertiseController extends Controller {
                 throw new Exception('Token CSRF inválido');
             }
             
-            // Verificar que existan datos de los pasos anteriores
-            if (!isset($_SESSION['expertise_step1']) || 
-                !isset($_SESSION['expertise_step2']) || 
-                !isset($_SESSION['expertise_step3']) ||
-                !isset($_SESSION['expertise_step4']) ||
-                !isset($_SESSION['expertise_step5']) ||
-                !isset($_SESSION['expertise_step6'])) {
-                throw new Exception('Debe completar los pasos anteriores primero');
+            // Obtener expertise_id
+            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            
+            if (!$expertiseId) {
+                throw new Exception('No se encontró un peritaje en progreso');
             }
             
             // Obtener datos de amortiguadores
@@ -916,14 +937,23 @@ class ExpertiseController extends Controller {
                 }
             }
             
-            // Guardar en sesión los datos del paso 7
-            $_SESSION['expertise_step7'] = [
+            // Preparar datos para actualizar
+            $data = [
                 'amortiguador_anterior_izquierdo' => $amortiguador_anterior_izquierdo,
                 'amortiguador_anterior_derecho' => $amortiguador_anterior_derecho,
                 'amortiguador_posterior_izquierdo' => $amortiguador_posterior_izquierdo,
                 'amortiguador_posterior_derecho' => $amortiguador_posterior_derecho,
-                'observaciones_amortiguadores' => $_POST['observaciones_amortiguadores'] ?? ''
+                'observaciones_amortiguadores' => $_POST['observaciones_amortiguadores'] ?? null
             ];
+            
+            // Actualizar en BD
+            $updated = $this->expertiseModel->updateStep7($expertiseId, $data);
+            
+            if (!$updated) {
+                throw new Exception('Error al guardar los datos de amortiguadores');
+            }
+            
+            $_SESSION['success'] = 'Inspección de amortiguadores guardada correctamente';
             
             // Redirigir al paso 8
             $this->redirect('expertise/step8');

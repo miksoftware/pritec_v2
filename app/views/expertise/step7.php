@@ -97,6 +97,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['amortiguador_anterior_izquierdo'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Porcentaje de vida útil</small>
                             </div>
@@ -114,6 +115,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['amortiguador_anterior_derecho'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Porcentaje de vida útil</small>
                             </div>
@@ -131,6 +133,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['amortiguador_posterior_izquierdo'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Porcentaje de vida útil</small>
                             </div>
@@ -148,6 +151,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['amortiguador_posterior_derecho'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Porcentaje de vida útil</small>
                             </div>
@@ -177,7 +181,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     class="form-control" 
                                     name="observaciones_amortiguadores" 
                                     rows="4"
-                                    placeholder="Ingrese observaciones sobre el estado de los amortiguadores (fugas, ruidos, desgaste, etc.)..."></textarea>
+                                    placeholder="Ingrese observaciones sobre el estado de los amortiguadores (fugas, ruidos, desgaste, etc.)..."><?= htmlspecialchars($expertise['observaciones_amortiguadores'] ?? '') ?></textarea>
                             </div>
                         </div>
                         
