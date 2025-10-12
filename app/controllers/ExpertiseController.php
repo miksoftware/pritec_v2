@@ -469,12 +469,16 @@ class ExpertiseController extends Controller {
                 throw new Exception('Debe completar al menos una inspección válida');
             }
             
+            // Obtener observación general
+            $observacionGeneral = $_POST['observaciones_carroceria'] ?? null;
+            
             // Actualizar inspecciones de carrocería en BD
             $updated = $this->expertiseModel->updateInspections(
                 $expertiseId, 
                 'carroceria', 
                 $inspecciones,
-                3
+                3,
+                $observacionGeneral
             );
             
             if (!$updated) {
@@ -496,22 +500,52 @@ class ExpertiseController extends Controller {
      * Mostrar el paso 4: Inspección Visual Interna (Estructura)
      */
     public function step4() {
-        // Verificar que existan los pasos anteriores
-        if (!isset($_SESSION['expertise_step1']) || 
-            !isset($_SESSION['expertise_step2']) || 
-            !isset($_SESSION['expertise_step3'])) {
-            $_SESSION['error'] = 'Debe completar los pasos anteriores primero';
-            $this->redirect('expertise/create');
-            return;
+        try {
+            // Obtener expertise_id de la sesión o recuperar último borrador
+            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            
+            if (!$expertiseId) {
+                // Intentar recuperar último borrador del usuario
+                $draft = $this->expertiseModel->getLastDraft($_SESSION['user_id']);
+                
+                if ($draft) {
+                    $expertiseId = $draft['id'];
+                    $_SESSION['expertise_id'] = $expertiseId;
+                } else {
+                    $_SESSION['error'] = 'Debe completar los pasos anteriores primero';
+                    $this->redirect('expertise/create');
+                    return;
+                }
+            }
+            
+            // Obtener datos del expertise desde BD
+            $expertise = $this->expertiseModel->getByIdComplete($expertiseId);
+            
+            if (!$expertise) {
+                throw new Exception('Peritaje no encontrado');
+            }
+            
+            // Verificar que el usuario sea el dueño
+            if ($expertise['user_id'] != $_SESSION['user_id']) {
+                throw new Exception('No tienes permiso para editar este peritaje');
+            }
+            
+            // Obtener inspecciones existentes de estructura
+            $existingInspections = $this->expertiseModel->getInspectionsBySection($expertiseId, 'estructura');
+            
+            $data = [
+                'title' => 'Nuevo Peritaje Completo - Paso 4',
+                'csrf_token' => $this->generateCSRFToken(),
+                'expertise' => $expertise,
+                'existingInspections' => $existingInspections
+            ];
+            
+            $this->view('expertise/step4', $data);
+            
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            $this->redirect('expertise/step3');
         }
-        
-        // Generar token CSRF
-        $csrf_token = $this->generateCsrfToken();
-        
-        // Cargar la vista del paso 4
-        $this->view('expertise/step4', [
-            'csrf_token' => $csrf_token
-        ]);
     }
     
     /**
@@ -524,11 +558,11 @@ class ExpertiseController extends Controller {
                 throw new Exception('Token CSRF inválido');
             }
             
-            // Verificar que existan datos de los pasos anteriores
-            if (!isset($_SESSION['expertise_step1']) || 
-                !isset($_SESSION['expertise_step2']) || 
-                !isset($_SESSION['expertise_step3'])) {
-                throw new Exception('Debe completar los pasos anteriores primero');
+            // Obtener expertise_id
+            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            
+            if (!$expertiseId) {
+                throw new Exception('No se encontró el peritaje en progreso');
             }
             
             // Obtener arrays de piezas y conceptos
@@ -556,11 +590,23 @@ class ExpertiseController extends Controller {
                 throw new Exception('Debe completar al menos una inspección válida');
             }
             
-            // Guardar en sesión los datos del paso 4
-            $_SESSION['expertise_step4'] = [
-                'inspecciones' => $inspecciones,
-                'observaciones_estructura' => $_POST['observaciones_estructura'] ?? ''
-            ];
+            // Obtener observación general
+            $observacionGeneral = $_POST['observaciones_estructura'] ?? null;
+            
+            // Actualizar inspecciones de estructura en BD
+            $updated = $this->expertiseModel->updateInspections(
+                $expertiseId, 
+                'estructura', 
+                $inspecciones,
+                4,
+                $observacionGeneral
+            );
+            
+            if (!$updated) {
+                throw new Exception('Error al guardar la inspección de estructura');
+            }
+            
+            $_SESSION['success'] = 'Inspección de estructura guardada correctamente';
             
             // Redirigir al paso 5
             $this->redirect('expertise/step5');
@@ -575,23 +621,52 @@ class ExpertiseController extends Controller {
      * Mostrar el paso 5: Inspección Chasis
      */
     public function step5() {
-        // Verificar que existan los pasos anteriores
-        if (!isset($_SESSION['expertise_step1']) || 
-            !isset($_SESSION['expertise_step2']) || 
-            !isset($_SESSION['expertise_step3']) ||
-            !isset($_SESSION['expertise_step4'])) {
-            $_SESSION['error'] = 'Debe completar los pasos anteriores primero';
-            $this->redirect('expertise/create');
-            return;
+        try {
+            // Obtener expertise_id de la sesión o recuperar último borrador
+            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            
+            if (!$expertiseId) {
+                // Intentar recuperar último borrador del usuario
+                $draft = $this->expertiseModel->getLastDraft($_SESSION['user_id']);
+                
+                if ($draft) {
+                    $expertiseId = $draft['id'];
+                    $_SESSION['expertise_id'] = $expertiseId;
+                } else {
+                    $_SESSION['error'] = 'Debe completar los pasos anteriores primero';
+                    $this->redirect('expertise/create');
+                    return;
+                }
+            }
+            
+            // Obtener datos del expertise desde BD
+            $expertise = $this->expertiseModel->getByIdComplete($expertiseId);
+            
+            if (!$expertise) {
+                throw new Exception('Peritaje no encontrado');
+            }
+            
+            // Verificar que el usuario sea el dueño
+            if ($expertise['user_id'] != $_SESSION['user_id']) {
+                throw new Exception('No tienes permiso para editar este peritaje');
+            }
+            
+            // Obtener inspecciones existentes de chasis
+            $existingInspections = $this->expertiseModel->getInspectionsBySection($expertiseId, 'chasis');
+            
+            $data = [
+                'title' => 'Nuevo Peritaje Completo - Paso 5',
+                'csrf_token' => $this->generateCSRFToken(),
+                'expertise' => $expertise,
+                'existingInspections' => $existingInspections
+            ];
+            
+            $this->view('expertise/step5', $data);
+            
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            $this->redirect('expertise/step4');
         }
-        
-        // Generar token CSRF
-        $csrf_token = $this->generateCsrfToken();
-        
-        // Cargar la vista del paso 5
-        $this->view('expertise/step5', [
-            'csrf_token' => $csrf_token
-        ]);
     }
     
     /**
@@ -604,12 +679,11 @@ class ExpertiseController extends Controller {
                 throw new Exception('Token CSRF inválido');
             }
             
-            // Verificar que existan datos de los pasos anteriores
-            if (!isset($_SESSION['expertise_step1']) || 
-                !isset($_SESSION['expertise_step2']) || 
-                !isset($_SESSION['expertise_step3']) ||
-                !isset($_SESSION['expertise_step4'])) {
-                throw new Exception('Debe completar los pasos anteriores primero');
+            // Obtener expertise_id
+            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            
+            if (!$expertiseId) {
+                throw new Exception('No se encontró el peritaje en progreso');
             }
             
             // Obtener arrays de piezas y conceptos
@@ -637,11 +711,23 @@ class ExpertiseController extends Controller {
                 throw new Exception('Debe completar al menos una inspección válida');
             }
             
-            // Guardar en sesión los datos del paso 5
-            $_SESSION['expertise_step5'] = [
-                'inspecciones' => $inspecciones,
-                'observaciones_chasis' => $_POST['observaciones_chasis'] ?? ''
-            ];
+            // Obtener observación general
+            $observacionGeneral = $_POST['observaciones_chasis'] ?? null;
+            
+            // Actualizar inspecciones de chasis en BD
+            $updated = $this->expertiseModel->updateInspections(
+                $expertiseId, 
+                'chasis', 
+                $inspecciones,
+                5,
+                $observacionGeneral
+            );
+            
+            if (!$updated) {
+                throw new Exception('Error al guardar la inspección de chasis');
+            }
+            
+            $_SESSION['success'] = 'Inspección de chasis guardada correctamente';
             
             // Redirigir al paso 6
             $this->redirect('expertise/step6');
@@ -656,24 +742,49 @@ class ExpertiseController extends Controller {
      * Mostrar el paso 6: Inspección de Llantas
      */
     public function step6() {
-        // Verificar que existan los pasos anteriores
-        if (!isset($_SESSION['expertise_step1']) || 
-            !isset($_SESSION['expertise_step2']) || 
-            !isset($_SESSION['expertise_step3']) ||
-            !isset($_SESSION['expertise_step4']) ||
-            !isset($_SESSION['expertise_step5'])) {
-            $_SESSION['error'] = 'Debe completar los pasos anteriores primero';
-            $this->redirect('expertise/create');
-            return;
+        try {
+            // Obtener expertise_id de la sesión o recuperar último borrador
+            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            
+            if (!$expertiseId) {
+                // Intentar recuperar último borrador del usuario
+                $lastDraft = $this->expertiseModel->getLastDraft($_SESSION['user_id']);
+                
+                if (!$lastDraft) {
+                    $_SESSION['error'] = 'No se encontró un peritaje en progreso. Por favor inicie uno nuevo.';
+                    $this->redirect('expertise/create');
+                    return;
+                }
+                
+                $expertiseId = $lastDraft['id'];
+                $_SESSION['expertise_id'] = $expertiseId;
+            }
+            
+            // Obtener datos del expertise desde BD
+            $expertise = $this->expertiseModel->getByIdComplete($expertiseId);
+            
+            if (!$expertise) {
+                $_SESSION['error'] = 'No se encontró el peritaje';
+                $this->redirect('expertise/create');
+            }
+            
+            // Verificar que el usuario sea el dueño
+            if ($expertise['user_id'] != $_SESSION['user_id']) {
+                $_SESSION['error'] = 'No tiene permisos para editar este peritaje';
+                $this->redirect('expertise');
+            }
+            
+            $data = [
+                'csrf_token' => $this->generateCsrfToken(),
+                'expertise' => $expertise
+            ];
+            
+            $this->view('expertise/step6', $data);
+            
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            $this->redirect('expertise/step5');
         }
-        
-        // Generar token CSRF
-        $csrf_token = $this->generateCsrfToken();
-        
-        // Cargar la vista del paso 6
-        $this->view('expertise/step6', [
-            'csrf_token' => $csrf_token
-        ]);
     }
     
     /**
@@ -686,13 +797,11 @@ class ExpertiseController extends Controller {
                 throw new Exception('Token CSRF inválido');
             }
             
-            // Verificar que existan datos de los pasos anteriores
-            if (!isset($_SESSION['expertise_step1']) || 
-                !isset($_SESSION['expertise_step2']) || 
-                !isset($_SESSION['expertise_step3']) ||
-                !isset($_SESSION['expertise_step4']) ||
-                !isset($_SESSION['expertise_step5'])) {
-                throw new Exception('Debe completar los pasos anteriores primero');
+            // Obtener expertise_id
+            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            
+            if (!$expertiseId) {
+                throw new Exception('No se encontró un peritaje en progreso');
             }
             
             // Obtener datos de llantas
@@ -715,14 +824,23 @@ class ExpertiseController extends Controller {
                 }
             }
             
-            // Guardar en sesión los datos del paso 6
-            $_SESSION['expertise_step6'] = [
+            // Preparar datos para actualizar
+            $data = [
                 'llanta_anterior_izquierda' => $llanta_anterior_izquierda,
                 'llanta_anterior_derecha' => $llanta_anterior_derecha,
                 'llanta_posterior_izquierda' => $llanta_posterior_izquierda,
                 'llanta_posterior_derecha' => $llanta_posterior_derecha,
-                'observaciones_llantas' => $_POST['observaciones_llantas'] ?? ''
+                'observaciones_llantas' => $_POST['observaciones_llantas'] ?? null
             ];
+            
+            // Actualizar en BD
+            $updated = $this->expertiseModel->updateStep6($expertiseId, $data);
+            
+            if (!$updated) {
+                throw new Exception('Error al guardar los datos de llantas');
+            }
+            
+            $_SESSION['success'] = 'Inspección de llantas guardada correctamente';
             
             // Redirigir al paso 7
             $this->redirect('expertise/step7');

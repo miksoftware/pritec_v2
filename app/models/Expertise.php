@@ -664,7 +664,7 @@ class Expertise extends Model {
      * @param int $currentStep Paso actual (3, 4 o 5)
      * @return bool True si se actualizó correctamente
      */
-    public function updateInspections($expertiseId, $section, $inspecciones, $currentStep) {
+    public function updateInspections($expertiseId, $section, $inspecciones, $currentStep, $observacionGeneral = null) {
         $db = $this->db->getConnection();
         
         try {
@@ -679,8 +679,8 @@ class Expertise extends Model {
             // 2. Insertar nuevas inspecciones
             if (!empty($inspecciones)) {
                 $sqlInsert = "INSERT INTO expertise_inspections 
-                             (expertise_id, section, pieza_id, concepto_id, observacion, created_at) 
-                             VALUES (?, ?, ?, ?, ?, NOW())";
+                             (expertise_id, section, pieza_id, concepto_id, created_at) 
+                             VALUES (?, ?, ?, ?, NOW())";
                 $stmtInsert = $db->prepare($sqlInsert);
                 
                 foreach ($inspecciones as $insp) {
@@ -688,20 +688,21 @@ class Expertise extends Model {
                         $expertiseId,
                         $section,
                         $insp['pieza_id'],
-                        $insp['concepto_id'],
-                        $insp['observacion'] ?? null
+                        $insp['concepto_id']
                     ]);
                 }
             }
             
-            // 3. Actualizar current_step y status
+            // 3. Actualizar observaciones generales y current_step
+            $observacionColumn = 'observaciones_' . $section;
             $sqlUpdate = "UPDATE expertises SET 
                          current_step = ?,
+                         {$observacionColumn} = ?,
                          status = 'in_progress',
                          updated_at = NOW()
                          WHERE id = ?";
             $stmtUpdate = $db->prepare($sqlUpdate);
-            $stmtUpdate->execute([$currentStep, $expertiseId]);
+            $stmtUpdate->execute([$currentStep, $observacionGeneral, $expertiseId]);
             
             $db->commit();
             return true;

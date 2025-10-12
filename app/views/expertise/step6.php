@@ -97,6 +97,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['llanta_anterior_izquierda'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Porcentaje de vida útil</small>
                             </div>
@@ -114,6 +115,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['llanta_anterior_derecha'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Porcentaje de vida útil</small>
                             </div>
@@ -131,6 +133,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['llanta_posterior_izquierda'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Porcentaje de vida útil</small>
                             </div>
@@ -148,6 +151,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     min="0" 
                                     max="100"
                                     placeholder="0-100"
+                                    value="<?= htmlspecialchars($expertise['llanta_posterior_derecha'] ?? '') ?>"
                                     required>
                                 <small class="text-muted">Porcentaje de vida útil</small>
                             </div>
@@ -177,7 +181,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     class="form-control" 
                                     name="observaciones_llantas" 
                                     rows="4"
-                                    placeholder="Ingrese observaciones sobre el estado de las llantas (marca, desgaste irregular, daños, etc.)..."></textarea>
+                                    placeholder="Ingrese observaciones sobre el estado de las llantas (marca, desgaste irregular, daños, etc.)..."><?= htmlspecialchars($expertise['observaciones_llantas'] ?? '') ?></textarea>
                             </div>
                         </div>
                         
