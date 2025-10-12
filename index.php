@@ -101,6 +101,7 @@ $router->get('/clients/export', 'ClientController@export');
 $router->get('/expertise', 'ExpertiseController@index');
 $router->get('/expertise/create', 'ExpertiseController@create');
 $router->get('/expertise/show/{id}', 'ExpertiseController@show');
+$router->get('/expertise/edit/{id}/{step}', 'ExpertiseController@edit');
 $router->post('/expertise/store', 'ExpertiseController@store');
 $router->get('/expertise/search-clients', 'ExpertiseController@searchClients');
 $router->get('/expertise/step2', 'ExpertiseController@step2');

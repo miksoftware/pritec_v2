@@ -1464,7 +1464,7 @@ class ExpertiseController extends Controller {
                     $fotos_guardadas[] = [
                         'nombre_original' => $file_name,
                         'nombre_guardado' => $nuevo_nombre,
-                        'ruta' => 'uploads/expertise/' . $nuevo_nombre,
+                        'ruta' => 'public/uploads/expertise/' . $nuevo_nombre,
                         'size' => $file_size,
                         'extension' => $file_ext
                     ];
@@ -1624,20 +1624,23 @@ class ExpertiseController extends Controller {
                 'capacidad_pasajeros' => $expertise['capacidad_pasajeros'] ?? ''
             ];
             
-            // Pasos 3, 4, 5: Inspecciones (cargar datos básicos)
-            // Las inspecciones se cargarán directamente desde el modelo en la vista
+            // Pasos 3, 4, 5: Inspecciones (cargar desde BD)
+            $inspeccionesCarroceria = $this->expertiseModel->getInspectionsBySection($id, 'carroceria');
+            $inspeccionesEstructura = $this->expertiseModel->getInspectionsBySection($id, 'estructura');
+            $inspeccionesChasis = $this->expertiseModel->getInspectionsBySection($id, 'chasis');
+            
             $_SESSION['expertise_step3'] = [
-                'inspecciones' => [],
+                'inspecciones' => $inspeccionesCarroceria,
                 'observaciones_carroceria' => $expertise['observaciones_carroceria'] ?? ''
             ];
             
             $_SESSION['expertise_step4'] = [
-                'inspecciones' => [],
+                'inspecciones' => $inspeccionesEstructura,
                 'observaciones_estructura' => $expertise['observaciones_estructura'] ?? ''
             ];
             
             $_SESSION['expertise_step5'] = [
-                'inspecciones' => [],
+                'inspecciones' => $inspeccionesChasis,
                 'observaciones_chasis' => $expertise['observaciones_chasis'] ?? ''
             ];
             
@@ -1729,9 +1732,12 @@ class ExpertiseController extends Controller {
                 'observaciones_fugas' => $expertise['observaciones_fugas'] ?? ''
             ];
             
-            // Paso 11: Fotos
+            // Paso 11: Fotos (cargar desde BD)
+            $fotos = $this->expertiseModel->getPhotos($id);
+            
             $_SESSION['expertise_step11'] = [
-                'fotos' => [],
+                'total_fotos' => count($fotos),
+                'fotos' => $fotos,
                 'observaciones_fotograficas' => $expertise['observaciones_fotograficas'] ?? ''
             ];
             
@@ -1739,8 +1745,12 @@ class ExpertiseController extends Controller {
                 'title' => 'Detalles del Peritaje #' . $expertise['service_number'],
                 'csrf_token' => $this->generateCSRFToken(),
                 'expertise_id' => $id,
+                'expertise' => $expertise,
                 'view_mode' => true, // Flag para indicar que estamos en modo vista
-                'backup_sessions' => $backup_sessions // Para restaurar después
+                'backup_sessions' => $backup_sessions, // Para restaurar después
+                'total_inspeccionesCarroceria' => count($inspeccionesCarroceria),
+                'total_inspeccionesEstructura' => count($inspeccionesEstructura),
+                'total_inspeccionesChasis' => count($inspeccionesChasis)
             ];
             
             $this->view('expertise/step12', $data);
@@ -1748,6 +1758,49 @@ class ExpertiseController extends Controller {
         } catch (Exception $e) {
             $_SESSION['error'] = $e->getMessage();
             $this->redirect('expertise');
+        }
+    }
+    
+    /**
+     * Iniciar edición de un peritaje completado
+     * @param int $id ID del expertise a editar
+     * @param int $step Número de paso a editar (1-11)
+     */
+    public function edit($id, $step = 2) {
+        try {
+            // Validar parámetros
+            if (empty($id) || !is_numeric($id)) {
+                throw new Exception('ID de peritaje inválido');
+            }
+            
+            if (empty($step) || !is_numeric($step) || $step < 1 || $step > 11) {
+                throw new Exception('Paso inválido');
+            }
+            
+            // Obtener el expertise
+            $expertise = $this->expertiseModel->getByIdComplete($id);
+            
+            if (!$expertise) {
+                throw new Exception('Peritaje no encontrado');
+            }
+            
+            // Verificar que el usuario sea el dueño
+            if ($expertise['user_id'] != $_SESSION['user_id']) {
+                throw new Exception('No tiene permisos para editar este peritaje');
+            }
+            
+            // Cargar el expertise_id en la sesión para poder editarlo
+            $_SESSION['expertise_id'] = $id;
+            
+            // Mensaje informativo
+            $_SESSION['info'] = 'Editando peritaje ' . $expertise['codigo'] . '. Los cambios se guardarán automáticamente.';
+            
+            // Redirigir al paso correspondiente (las vistas ya cargan datos desde BD)
+            $this->redirect('expertise/step' . $step);
+            
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            $this->redirect('expertise/show/' . $id);
         }
     }
     

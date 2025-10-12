@@ -101,7 +101,11 @@ if ($view_mode) {
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Paso 1: Información del Servicio</strong>
                         </div>
-                        <?php if (!$view_mode): ?>
+                        <?php if ($view_mode && isset($expertise_id)): ?>
+                        <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/1" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <?php elseif (!$view_mode): ?>
                         <a href="<?= APP_URL ?>expertise/create" class="btn btn-sm btn-light">
                             <i class="fas fa-edit"></i> Editar
                         </a>
@@ -142,9 +146,15 @@ if ($view_mode) {
                             <i class="fas fa-car me-2"></i>
                             <strong>Paso 2: Datos del Vehículo</strong>
                         </div>
+                        <?php if ($view_mode && isset($expertise_id)): ?>
+                        <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/2" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <?php elseif (!$view_mode): ?>
                         <a href="<?= APP_URL ?>expertise/step2" class="btn btn-sm btn-light">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -199,36 +209,54 @@ if ($view_mode) {
                                     <i class="fas fa-car me-2"></i>Carrocería
                                 </h5>
                                 <h2 class="text-success">
-                                    <?= count($step3['inspecciones'] ?? []) ?>
+                                    <?= $total_inspeccionesCarroceria ?? count($step3['inspecciones'] ?? []) ?>
                                 </h2>
                                 <p class="mb-0">piezas inspeccionadas</p>
+                                <?php if ($view_mode && isset($expertise_id)): ?>
+                                <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/3" class="btn btn-sm btn-warning mt-2">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <?php elseif (!$view_mode): ?>
                                 <a href="<?= APP_URL ?>expertise/step3" class="btn btn-sm btn-outline-primary mt-2">
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
+                                <?php endif; ?>
                             </div>
                             <div class="col-md-4 text-center">
                                 <h5 class="text-primary">
                                     <i class="fas fa-building me-2"></i>Estructura
                                 </h5>
                                 <h2 class="text-success">
-                                    <?= count($step4['inspecciones'] ?? []) ?>
+                                    <?= $total_inspeccionesEstructura ?? count($step4['inspecciones'] ?? []) ?>
                                 </h2>
                                 <p class="mb-0">piezas inspeccionadas</p>
+                                <?php if ($view_mode && isset($expertise_id)): ?>
+                                <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/4" class="btn btn-sm btn-warning mt-2">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <?php elseif (!$view_mode): ?>
                                 <a href="<?= APP_URL ?>expertise/step4" class="btn btn-sm btn-outline-primary mt-2">
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
+                                <?php endif; ?>
                             </div>
                             <div class="col-md-4 text-center">
                                 <h5 class="text-primary">
                                     <i class="fas fa-cogs me-2"></i>Chasis
                                 </h5>
                                 <h2 class="text-success">
-                                    <?= count($step5['inspecciones'] ?? []) ?>
+                                    <?= $total_inspeccionesChasis ?? count($step5['inspecciones'] ?? []) ?>
                                 </h2>
                                 <p class="mb-0">piezas inspeccionadas</p>
+                                <?php if ($view_mode && isset($expertise_id)): ?>
+                                <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/5" class="btn btn-sm btn-warning mt-2">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <?php elseif (!$view_mode): ?>
                                 <a href="<?= APP_URL ?>expertise/step5" class="btn btn-sm btn-outline-primary mt-2">
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -249,9 +277,15 @@ if ($view_mode) {
                                 <small>Post. Izq: <strong><?= htmlspecialchars($step6['llanta_posterior_izquierda'] ?? '0') ?>%</strong></small><br>
                                 <small>Post. Der: <strong><?= htmlspecialchars($step6['llanta_posterior_derecha'] ?? '0') ?>%</strong></small>
                                 <div class="mt-2">
+                                    <?php if ($view_mode && isset($expertise_id)): ?>
+                                    <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/6" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <?php elseif (!$view_mode): ?>
                                     <a href="<?= APP_URL ?>expertise/step6" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-edit"></i> Editar
                                     </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
@@ -261,9 +295,15 @@ if ($view_mode) {
                                 <small>Post. Izq: <strong><?= htmlspecialchars($step7['amortiguador_posterior_izquierdo'] ?? '0') ?>%</strong></small><br>
                                 <small>Post. Der: <strong><?= htmlspecialchars($step7['amortiguador_posterior_derecho'] ?? '0') ?>%</strong></small>
                                 <div class="mt-2">
+                                    <?php if ($view_mode && isset($expertise_id)): ?>
+                                    <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/7" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <?php elseif (!$view_mode): ?>
                                     <a href="<?= APP_URL ?>expertise/step7" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-edit"></i> Editar
                                     </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
@@ -272,9 +312,15 @@ if ($view_mode) {
                                 <small>Prueba Arranque: <strong><?= htmlspecialchars($step8['prueba_arranque'] ?? '0') ?>%</strong></small><br>
                                 <small>Carga Batería: <strong><?= htmlspecialchars($step8['carga_bateria'] ?? '0') ?>%</strong></small>
                                 <div class="mt-2">
+                                    <?php if ($view_mode && isset($expertise_id)): ?>
+                                    <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/8" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <?php elseif (!$view_mode): ?>
                                     <a href="<?= APP_URL ?>expertise/step8" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-edit"></i> Editar
                                     </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -288,9 +334,15 @@ if ($view_mode) {
                             <i class="fas fa-cog me-2"></i>
                             <strong>Paso 9: Motor y Sistemas</strong>
                         </div>
+                        <?php if ($view_mode && isset($expertise_id)): ?>
+                        <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/9" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <?php elseif (!$view_mode): ?>
                         <a href="<?= APP_URL ?>expertise/step9" class="btn btn-sm btn-light">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <div class="text-center">
@@ -307,9 +359,15 @@ if ($view_mode) {
                             <i class="fas fa-tint me-2"></i>
                             <strong>Paso 10: Fugas y Niveles</strong>
                         </div>
+                        <?php if ($view_mode && isset($expertise_id)): ?>
+                        <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/10" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <?php elseif (!$view_mode): ?>
                         <a href="<?= APP_URL ?>expertise/step10" class="btn btn-sm btn-light">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <div class="text-center">
@@ -326,9 +384,15 @@ if ($view_mode) {
                             <i class="fas fa-camera me-2"></i>
                             <strong>Paso 11: Fijación Fotográfica</strong>
                         </div>
+                        <?php if ($view_mode && isset($expertise_id)): ?>
+                        <a href="<?= APP_URL ?>expertise/edit/<?= $expertise_id ?>/11" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <?php elseif (!$view_mode): ?>
                         <a href="<?= APP_URL ?>expertise/step11" class="btn btn-sm btn-light">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <div class="text-center mb-3">
@@ -339,12 +403,6 @@ if ($view_mode) {
                         </div>
                         
                         <?php if (!empty($step11['fotos'])): ?>
-                        <!-- DEBUG: Ver estructura de datos -->
-                        <?php if (isset($_GET['debug'])): ?>
-                        <div class="alert alert-info">
-                            <pre><?php print_r($step11['fotos']); ?></pre>
-                        </div>
-                        <?php endif; ?>
                         <div class="row g-2">
                             <?php foreach (array_slice($step11['fotos'], 0, 8) as $foto): ?>
                             <div class="col-md-3 col-sm-4 col-6">
