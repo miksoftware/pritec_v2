@@ -516,4 +516,392 @@ class Expertise extends Model {
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['count'] > 0;
     }
+    
+    /**
+     * Crear un borrador inicial de peritaje (Paso 1)
+     * @param array $data Datos del paso 1
+     * @return int ID del expertise creado
+     */
+    public function createDraft($data) {
+        // Generar código único del peritaje
+        $codigo = 'PRT-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+        
+        $sql = "INSERT INTO expertises (
+            codigo,
+            client_id,
+            user_id,
+            service_date,
+            service_number,
+            service_for,
+            agreement,
+            placa,
+            status,
+            current_step,
+            created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', 1, NOW())";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute([
+            $codigo,
+            $data['client_id'],
+            $data['user_id'],
+            $data['service_date'],
+            $data['service_number'] ?? null,
+            $data['service_for'] ?? null,
+            $data['agreement'] ?? null,
+            $data['placa'] ?? '' // Placa temporal
+        ]);
+        
+        return $this->db->getConnection()->lastInsertId();
+    }
+    
+    /**
+     * Obtener el último borrador de un usuario
+     * @param int $userId ID del usuario
+     * @return array|false Datos del expertise o false si no existe
+     */
+    public function getLastDraft($userId) {
+        $sql = "SELECT * FROM expertises 
+                WHERE user_id = ? 
+                AND status IN ('draft', 'in_progress')
+                ORDER BY updated_at DESC 
+                LIMIT 1";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute([$userId]);
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+    /**
+     * Obtener un expertise completo por ID (con JSONs decodificados)
+     * @param int $id ID del expertise
+     * @return array|false Datos completos o false si no existe
+     */
+    public function getByIdComplete($id) {
+        $expertise = $this->getByIdWithRelations($id);
+        
+        if (!$expertise) {
+            return false;
+        }
+        
+        // Decodificar JSONs
+        if (!empty($expertise['motor_sistemas_data'])) {
+            $expertise['motor_sistemas_data'] = json_decode($expertise['motor_sistemas_data'], true);
+        }
+        
+        if (!empty($expertise['fugas_niveles_data'])) {
+            $expertise['fugas_niveles_data'] = json_decode($expertise['fugas_niveles_data'], true);
+        }
+        
+        return $expertise;
+    }
+    
+    /**
+     * Actualizar datos del Paso 2 (Datos del Vehículo)
+     * @param int $id ID del expertise
+     * @param array $data Datos del vehículo
+     * @return bool True si se actualizó correctamente
+     */
+    public function updateStep2($id, $data) {
+        $sql = "UPDATE expertises SET
+            vehicle_type_id = ?,
+            placa = ?,
+            marca = ?,
+            linea = ?,
+            modelo = ?,
+            color = ?,
+            clase_vehiculo = ?,
+            tipo_vehiculo = ?,
+            tipo_carroceria = ?,
+            tipo_combustible = ?,
+            numero_motor = ?,
+            numero_chasis = ?,
+            numero_serie = ?,
+            vin = ?,
+            kilometraje = ?,
+            cilindrada = ?,
+            capacidad_carga = ?,
+            numero_ejes = ?,
+            numero_pasajeros = ?,
+            fecha_matricula = ?,
+            current_step = 2,
+            status = 'in_progress',
+            updated_at = NOW()
+        WHERE id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute([
+            $data['tipo_vehiculo'] ?? null,
+            $data['placa'],
+            $data['marca'] ?? null,
+            $data['linea'] ?? null,
+            $data['modelo'] ?? null,
+            $data['color'] ?? null,
+            $data['clase_vehiculo'] ?? null,
+            $data['tipo_vehiculo_text'] ?? null,
+            $data['tipo_carroceria'] ?? null,
+            $data['tipo_combustible'] ?? null,
+            $data['numero_motor'] ?? null,
+            $data['numero_chasis'] ?? null,
+            $data['numero_serie'] ?? null,
+            $data['vin'] ?? null,
+            $data['kilometraje'] ?? null,
+            $data['cilindrada'] ?? null,
+            $data['capacidad_carga'] ?? null,
+            $data['numero_ejes'] ?? null,
+            $data['numero_pasajeros'] ?? null,
+            $data['fecha_matricula'] ?? null,
+            $id
+        ]);
+    }
+    
+    /**
+     * Actualizar inspecciones de un peritaje (Pasos 3, 4, 5)
+     * @param int $expertiseId ID del expertise
+     * @param string $section Sección: 'carroceria', 'estructura', 'chasis'
+     * @param array $inspecciones Array de inspecciones
+     * @param int $currentStep Paso actual (3, 4 o 5)
+     * @return bool True si se actualizó correctamente
+     */
+    public function updateInspections($expertiseId, $section, $inspecciones, $currentStep) {
+        $db = $this->db->getConnection();
+        
+        try {
+            $db->beginTransaction();
+            
+            // 1. Eliminar inspecciones anteriores de esta sección
+            $sqlDelete = "DELETE FROM expertise_inspections 
+                         WHERE expertise_id = ? AND section = ?";
+            $stmtDelete = $db->prepare($sqlDelete);
+            $stmtDelete->execute([$expertiseId, $section]);
+            
+            // 2. Insertar nuevas inspecciones
+            if (!empty($inspecciones)) {
+                $sqlInsert = "INSERT INTO expertise_inspections 
+                             (expertise_id, section, pieza_id, concepto_id, observacion, created_at) 
+                             VALUES (?, ?, ?, ?, ?, NOW())";
+                $stmtInsert = $db->prepare($sqlInsert);
+                
+                foreach ($inspecciones as $insp) {
+                    $stmtInsert->execute([
+                        $expertiseId,
+                        $section,
+                        $insp['pieza_id'],
+                        $insp['concepto_id'],
+                        $insp['observacion'] ?? null
+                    ]);
+                }
+            }
+            
+            // 3. Actualizar current_step y status
+            $sqlUpdate = "UPDATE expertises SET 
+                         current_step = ?,
+                         status = 'in_progress',
+                         updated_at = NOW()
+                         WHERE id = ?";
+            $stmtUpdate = $db->prepare($sqlUpdate);
+            $stmtUpdate->execute([$currentStep, $expertiseId]);
+            
+            $db->commit();
+            return true;
+            
+        } catch (Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
+    
+    /**
+     * Actualizar datos del Paso 6 (Llantas)
+     * @param int $id ID del expertise
+     * @param array $data Datos de llantas
+     * @return bool True si se actualizó correctamente
+     */
+    public function updateStep6($id, $data) {
+        $sql = "UPDATE expertises SET
+            llanta_anterior_izquierda = ?,
+            llanta_anterior_derecha = ?,
+            llanta_posterior_izquierda = ?,
+            llanta_posterior_derecha = ?,
+            observaciones_llantas = ?,
+            current_step = 6,
+            status = 'in_progress',
+            updated_at = NOW()
+        WHERE id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute([
+            $data['llanta_anterior_izquierda'] ?? 0,
+            $data['llanta_anterior_derecha'] ?? 0,
+            $data['llanta_posterior_izquierda'] ?? 0,
+            $data['llanta_posterior_derecha'] ?? 0,
+            $data['observaciones_llantas'] ?? null,
+            $id
+        ]);
+    }
+    
+    /**
+     * Actualizar datos del Paso 7 (Amortiguadores)
+     * @param int $id ID del expertise
+     * @param array $data Datos de amortiguadores
+     * @return bool True si se actualizó correctamente
+     */
+    public function updateStep7($id, $data) {
+        $sql = "UPDATE expertises SET
+            amortiguador_anterior_izquierdo = ?,
+            amortiguador_anterior_derecho = ?,
+            amortiguador_posterior_izquierdo = ?,
+            amortiguador_posterior_derecho = ?,
+            observaciones_amortiguadores = ?,
+            current_step = 7,
+            status = 'in_progress',
+            updated_at = NOW()
+        WHERE id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute([
+            $data['amortiguador_anterior_izquierdo'] ?? 0,
+            $data['amortiguador_anterior_derecho'] ?? 0,
+            $data['amortiguador_posterior_izquierdo'] ?? 0,
+            $data['amortiguador_posterior_derecho'] ?? 0,
+            $data['observaciones_amortiguadores'] ?? null,
+            $id
+        ]);
+    }
+    
+    /**
+     * Actualizar datos del Paso 8 (Batería)
+     * @param int $id ID del expertise
+     * @param array $data Datos de batería
+     * @return bool True si se actualizó correctamente
+     */
+    public function updateStep8($id, $data) {
+        $sql = "UPDATE expertises SET
+            prueba_bateria = ?,
+            prueba_arranque = ?,
+            carga_bateria = ?,
+            observaciones_bateria = ?,
+            current_step = 8,
+            status = 'in_progress',
+            updated_at = NOW()
+        WHERE id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute([
+            $data['prueba_bateria'] ?? 0,
+            $data['prueba_arranque'] ?? 0,
+            $data['carga_bateria'] ?? 0,
+            $data['observaciones_bateria'] ?? null,
+            $id
+        ]);
+    }
+    
+    /**
+     * Actualizar datos del Paso 9 (Motor y Sistemas)
+     * @param int $id ID del expertise
+     * @param array $data Datos de motor y sistemas
+     * @return bool True si se actualizó correctamente
+     */
+    public function updateStep9($id, $data) {
+        // Convertir a JSON
+        $motorSistemasJson = json_encode($data);
+        
+        $sql = "UPDATE expertises SET
+            motor_sistemas_data = ?,
+            observaciones_motor = ?,
+            observaciones_interior = ?,
+            current_step = 9,
+            status = 'in_progress',
+            updated_at = NOW()
+        WHERE id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute([
+            $motorSistemasJson,
+            $data['observaciones_motor'] ?? null,
+            $data['observaciones_interior'] ?? null,
+            $id
+        ]);
+    }
+    
+    /**
+     * Actualizar datos del Paso 10 (Fugas y Niveles)
+     * @param int $id ID del expertise
+     * @param array $data Datos de fugas y niveles
+     * @return bool True si se actualizó correctamente
+     */
+    public function updateStep10($id, $data) {
+        // Convertir a JSON
+        $fugasNivelesJson = json_encode($data);
+        
+        $sql = "UPDATE expertises SET
+            fugas_niveles_data = ?,
+            prueba_ruta = ?,
+            observaciones_fugas = ?,
+            current_step = 10,
+            status = 'in_progress',
+            updated_at = NOW()
+        WHERE id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute([
+            $fugasNivelesJson,
+            $data['prueba_ruta'] ?? null,
+            $data['observaciones_fugas'] ?? null,
+            $id
+        ]);
+    }
+    
+    /**
+     * Actualizar contador de fotos del Paso 11
+     * @param int $id ID del expertise
+     * @param int $totalFotos Total de fotos
+     * @return bool True si se actualizó correctamente
+     */
+    public function updateStep11($id, $totalFotos) {
+        $sql = "UPDATE expertises SET
+            total_fotos = ?,
+            current_step = 11,
+            status = 'in_progress',
+            updated_at = NOW()
+        WHERE id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute([$totalFotos, $id]);
+    }
+    
+    /**
+     * Obtener inspecciones por sección
+     * @param int $expertiseId ID del expertise
+     * @param string $section Nombre de la sección (carroceria, vidrios, estructura)
+     * @return array Array de inspecciones
+     */
+    public function getInspectionsBySection($expertiseId, $section) {
+        $sql = "SELECT * FROM expertise_inspections 
+                WHERE expertise_id = ? AND section = ?
+                ORDER BY id ASC";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute([$expertiseId, $section]);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
+     * Completar peritaje (Paso 12)
+     * @param int $id ID del expertise
+     * @return bool True si se completó correctamente
+     */
+    public function completeExpertise($id) {
+        $sql = "UPDATE expertises SET
+            status = 'completed',
+            current_step = 12,
+            updated_at = NOW()
+        WHERE id = ?";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute([$id]);
+    }
 }
+
