@@ -818,23 +818,41 @@ class ExpertiseController extends Controller {
                 throw new Exception('No se encontró un peritaje en progreso');
             }
             
+            // Obtener el tipo de vehículo para validación
+            $expertise = $this->expertiseModel->getByIdComplete($expertiseId);
+            $vehicleType = $expertise['tipo_vehiculo_type'] ?? 'carro';
+            
             // Obtener datos de llantas
             $llanta_anterior_izquierda = isset($_POST['llanta_anterior_izquierda']) ? intval($_POST['llanta_anterior_izquierda']) : null;
             $llanta_anterior_derecha = isset($_POST['llanta_anterior_derecha']) ? intval($_POST['llanta_anterior_derecha']) : null;
             $llanta_posterior_izquierda = isset($_POST['llanta_posterior_izquierda']) ? intval($_POST['llanta_posterior_izquierda']) : null;
             $llanta_posterior_derecha = isset($_POST['llanta_posterior_derecha']) ? intval($_POST['llanta_posterior_derecha']) : null;
             
-            // Validar que todos los porcentajes estén en el rango 0-100
-            $porcentajes = [
-                'anterior_izquierda' => $llanta_anterior_izquierda,
-                'anterior_derecha' => $llanta_anterior_derecha,
-                'posterior_izquierda' => $llanta_posterior_izquierda,
-                'posterior_derecha' => $llanta_posterior_derecha
-            ];
-            
-            foreach ($porcentajes as $nombre => $valor) {
-                if ($valor === null || $valor < 0 || $valor > 100) {
-                    throw new Exception('El porcentaje de la llanta ' . str_replace('_', ' ', $nombre) . ' debe estar entre 0 y 100');
+            // Validar según el tipo de vehículo
+            if ($vehicleType === 'moto') {
+                // Para motos: solo validar delantera derecha y trasera derecha
+                if ($llanta_anterior_derecha === null || $llanta_anterior_derecha < 0 || $llanta_anterior_derecha > 100) {
+                    throw new Exception('El porcentaje de la llanta delantera debe estar entre 0 y 100');
+                }
+                if ($llanta_posterior_derecha === null || $llanta_posterior_derecha < 0 || $llanta_posterior_derecha > 100) {
+                    throw new Exception('El porcentaje de la llanta trasera debe estar entre 0 y 100');
+                }
+                // Las llantas izquierdas se guardan como 0 para motos
+                $llanta_anterior_izquierda = 0;
+                $llanta_posterior_izquierda = 0;
+            } else {
+                // Para carros: validar las 4 llantas
+                $porcentajes = [
+                    'anterior_izquierda' => $llanta_anterior_izquierda,
+                    'anterior_derecha' => $llanta_anterior_derecha,
+                    'posterior_izquierda' => $llanta_posterior_izquierda,
+                    'posterior_derecha' => $llanta_posterior_derecha
+                ];
+                
+                foreach ($porcentajes as $nombre => $valor) {
+                    if ($valor === null || $valor < 0 || $valor > 100) {
+                        throw new Exception('El porcentaje de la llanta ' . str_replace('_', ' ', $nombre) . ' debe estar entre 0 y 100');
+                    }
                 }
             }
             

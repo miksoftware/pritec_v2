@@ -20,9 +20,12 @@ renderContentHeader('Nuevo Peritaje Completo', [
         ['text' => 'Nuevo Peritaje Completo', 'url' => null]
     ])
 ]);
+
+// Detectar tipo de vehículo
+$vehicleType = $expertise['tipo_vehiculo_type'] ?? 'carro';
 ?>
 
-<?php renderExpertiseProgressIndicator(6); ?>
+<?php renderExpertiseProgressIndicator(6, $vehicleType); ?>
 
 <!-- Content Body -->
 <div class="content-body">
@@ -47,114 +50,184 @@ renderContentHeader('Nuevo Peritaje Completo', [
                     
                     <div class="card-body p-4">
                         
-                        <!-- Ilustración de Llantas -->
-                        <div class="alert alert-light border mb-4">
-                            <div class="row text-center">
-                                <div class="col-md-6">
-                                    <div class="p-3 bg-white rounded shadow-sm mb-2">
-                                        <i class="fas fa-circle fa-3x text-secondary mb-2"></i>
-                                        <p class="mb-0 fw-bold">Anterior Izquierda</p>
+                        <?php if ($vehicleType === 'moto'): ?>
+                            <!-- Ilustración de Llantas para Moto (2 llantas) -->
+                            <div class="alert alert-light border mb-4">
+                                <div class="row text-center">
+                                    <div class="col-md-6 offset-md-3">
+                                        <div class="p-3 bg-white rounded shadow-sm mb-3">
+                                            <i class="fas fa-circle fa-4x text-secondary mb-2"></i>
+                                            <p class="mb-0 fw-bold">Llanta Delantera</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="p-3 bg-white rounded shadow-sm mb-2">
-                                        <i class="fas fa-circle fa-3x text-secondary mb-2"></i>
-                                        <p class="mb-0 fw-bold">Anterior Derecha</p>
-                                    </div>
+                                <div class="text-center my-3">
+                                    <i class="fas fa-motorcycle fa-4x text-warning"></i>
                                 </div>
-                            </div>
-                            <div class="text-center my-3">
-                                <i class="fas fa-car fa-3x text-primary"></i>
-                            </div>
-                            <div class="row text-center">
-                                <div class="col-md-6">
-                                    <div class="p-3 bg-white rounded shadow-sm">
-                                        <i class="fas fa-circle fa-3x text-secondary mb-2"></i>
-                                        <p class="mb-0 fw-bold">Posterior Izquierda</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="p-3 bg-white rounded shadow-sm">
-                                        <i class="fas fa-circle fa-3x text-secondary mb-2"></i>
-                                        <p class="mb-0 fw-bold">Posterior Derecha</p>
+                                <div class="row text-center">
+                                    <div class="col-md-6 offset-md-3">
+                                        <div class="p-3 bg-white rounded shadow-sm">
+                                            <i class="fas fa-circle fa-4x text-secondary mb-2"></i>
+                                            <p class="mb-0 fw-bold">Llanta Trasera</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        <?php else: ?>
+                            <!-- Ilustración de Llantas para Carro (4 llantas) -->
+                            <div class="alert alert-light border mb-4">
+                                <div class="row text-center">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded shadow-sm mb-2">
+                                            <i class="fas fa-circle fa-3x text-secondary mb-2"></i>
+                                            <p class="mb-0 fw-bold">Anterior Izquierda</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded shadow-sm mb-2">
+                                            <i class="fas fa-circle fa-3x text-secondary mb-2"></i>
+                                            <p class="mb-0 fw-bold">Anterior Derecha</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center my-3">
+                                    <i class="fas fa-car fa-3x text-primary"></i>
+                                </div>
+                                <div class="row text-center">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded shadow-sm">
+                                            <i class="fas fa-circle fa-3x text-secondary mb-2"></i>
+                                            <p class="mb-0 fw-bold">Posterior Izquierda</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded shadow-sm">
+                                            <i class="fas fa-circle fa-3x text-secondary mb-2"></i>
+                                            <p class="mb-0 fw-bold">Posterior Derecha</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                         
                         <!-- Campos de Porcentaje -->
                         <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label for="llanta_anterior_izquierda" class="form-label fw-bold">
-                                    <i class="fas fa-circle text-secondary me-2"></i>
-                                    Anterior Izquierda (%)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="llanta_anterior_izquierda"
-                                    class="form-control form-control-lg" 
-                                    name="llanta_anterior_izquierda" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="0-100"
-                                    value="<?= htmlspecialchars($expertise['llanta_anterior_izquierda'] ?? '') ?>"
-                                    required>
-                                <small class="text-muted">Porcentaje de vida útil</small>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3">
-                                <label for="llanta_anterior_derecha" class="form-label fw-bold">
-                                    <i class="fas fa-circle text-secondary me-2"></i>
-                                    Anterior Derecha (%)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="llanta_anterior_derecha"
-                                    class="form-control form-control-lg" 
-                                    name="llanta_anterior_derecha" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="0-100"
-                                    value="<?= htmlspecialchars($expertise['llanta_anterior_derecha'] ?? '') ?>"
-                                    required>
-                                <small class="text-muted">Porcentaje de vida útil</small>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3">
-                                <label for="llanta_posterior_izquierda" class="form-label fw-bold">
-                                    <i class="fas fa-circle text-secondary me-2"></i>
-                                    Posterior Izquierda (%)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="llanta_posterior_izquierda"
-                                    class="form-control form-control-lg" 
-                                    name="llanta_posterior_izquierda" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="0-100"
-                                    value="<?= htmlspecialchars($expertise['llanta_posterior_izquierda'] ?? '') ?>"
-                                    required>
-                                <small class="text-muted">Porcentaje de vida útil</small>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3">
-                                <label for="llanta_posterior_derecha" class="form-label fw-bold">
-                                    <i class="fas fa-circle text-secondary me-2"></i>
-                                    Posterior Derecha (%)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="llanta_posterior_derecha"
-                                    class="form-control form-control-lg" 
-                                    name="llanta_posterior_derecha" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="0-100"
-                                    value="<?= htmlspecialchars($expertise['llanta_posterior_derecha'] ?? '') ?>"
-                                    required>
-                                <small class="text-muted">Porcentaje de vida útil</small>
-                            </div>
+                            <?php if ($vehicleType === 'moto'): ?>
+                                <!-- Campos para Moto (2 llantas) -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="llanta_anterior_derecha" class="form-label fw-bold">
+                                        <i class="fas fa-circle text-secondary me-2"></i>
+                                        Llanta Delantera (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="llanta_anterior_derecha"
+                                        class="form-control form-control-lg" 
+                                        name="llanta_anterior_derecha" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['llanta_anterior_derecha'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil de la llanta delantera</small>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="llanta_posterior_derecha" class="form-label fw-bold">
+                                        <i class="fas fa-circle text-secondary me-2"></i>
+                                        Llanta Trasera (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="llanta_posterior_derecha"
+                                        class="form-control form-control-lg" 
+                                        name="llanta_posterior_derecha" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['llanta_posterior_derecha'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil de la llanta trasera</small>
+                                </div>
+                                
+                                <!-- Campos ocultos para llantas izquierdas (no se usan en motos) -->
+                                <input type="hidden" name="llanta_anterior_izquierda" value="0">
+                                <input type="hidden" name="llanta_posterior_izquierda" value="0">
+                                
+                            <?php else: ?>
+                                <!-- Campos para Carro (4 llantas) -->
+                                <div class="col-md-3 mb-3">
+                                    <label for="llanta_anterior_izquierda" class="form-label fw-bold">
+                                        <i class="fas fa-circle text-secondary me-2"></i>
+                                        Anterior Izquierda (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="llanta_anterior_izquierda"
+                                        class="form-control form-control-lg" 
+                                        name="llanta_anterior_izquierda" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['llanta_anterior_izquierda'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil</small>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3">
+                                    <label for="llanta_anterior_derecha" class="form-label fw-bold">
+                                        <i class="fas fa-circle text-secondary me-2"></i>
+                                        Anterior Derecha (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="llanta_anterior_derecha"
+                                        class="form-control form-control-lg" 
+                                        name="llanta_anterior_derecha" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['llanta_anterior_derecha'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil</small>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3">
+                                    <label for="llanta_posterior_izquierda" class="form-label fw-bold">
+                                        <i class="fas fa-circle text-secondary me-2"></i>
+                                        Posterior Izquierda (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="llanta_posterior_izquierda"
+                                        class="form-control form-control-lg" 
+                                        name="llanta_posterior_izquierda" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['llanta_posterior_izquierda'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil</small>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3">
+                                    <label for="llanta_posterior_derecha" class="form-label fw-bold">
+                                        <i class="fas fa-circle text-secondary me-2"></i>
+                                        Posterior Derecha (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="llanta_posterior_derecha"
+                                        class="form-control form-control-lg" 
+                                        name="llanta_posterior_derecha" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['llanta_posterior_derecha'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil</small>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         
                         <!-- Indicador de Estado -->
