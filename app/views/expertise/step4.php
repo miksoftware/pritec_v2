@@ -19,9 +19,12 @@ renderContentHeader('Nuevo Peritaje Completo', [
         ['text' => 'Nuevo Peritaje Completo', 'url' => null]
     ])
 ]);
+
+// Obtener tipo de vehículo para el indicador de progreso
+$vehicleType = $expertise['tipo_vehiculo_type'] ?? 'carro';
 ?>
 
-<?php renderExpertiseProgressIndicator(4); ?>
+<?php renderExpertiseProgressIndicator(4, $vehicleType); ?>
 
 <!-- Content Body -->
 <div class="content-body">
@@ -91,9 +94,15 @@ renderContentHeader('Nuevo Peritaje Completo', [
                     <!-- Botones de Navegación -->
                     <div class="card-footer bg-light">
                         <div class="d-flex justify-content-between align-items-center">
-                            <a href="<?= APP_URL ?>expertise/step3" class="btn btn-outline-secondary">
+                            <?php 
+                            // Determinar el paso anterior según el tipo de vehículo
+                            $vehicleType = $expertise['tipo_vehiculo_type'] ?? 'carro';
+                            $previousStep = ($vehicleType === 'moto') ? 2 : 3;
+                            $previousStepName = ($vehicleType === 'moto') ? 'Vehículo' : 'Carrocería';
+                            ?>
+                            <a href="<?= APP_URL ?>expertise/step<?= $previousStep ?>" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>
-                                Volver al Paso 3
+                                Volver al Paso <?= $previousStep ?> (<?= $previousStepName ?>)
                             </a>
                             
                             <button type="submit" class="btn btn-primary btn-lg px-5">

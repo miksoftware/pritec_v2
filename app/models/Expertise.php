@@ -206,7 +206,8 @@ class Expertise extends Model {
                     c.identification as cliente_identificacion,
                     c.address as cliente_direccion,
                     vt.name as tipo_vehiculo_nombre,
-                    vt.description as tipo_vehiculo_descripcion
+                    vt.description as tipo_vehiculo_descripcion,
+                    vt.type as tipo_vehiculo_type
                 FROM expertises e
                 LEFT JOIN clients c ON e.client_id = c.id
                 LEFT JOIN vehicle_types vt ON e.tipo_vehiculo = vt.id
@@ -431,20 +432,20 @@ class Expertise extends Model {
     public function searchVehicleTypes($search = '') {
         if (strlen($search) > 0) {
             $searchParam = "%{$search}%";
-            $sql = "SELECT id, name, description 
+            $sql = "SELECT id, name, description, type 
                     FROM vehicle_types 
                     WHERE status = 'active' 
                     AND (name LIKE ? OR description LIKE ?)
-                    ORDER BY name
+                    ORDER BY type DESC, name ASC
                     LIMIT 20";
             
             $stmt = $this->db->getConnection()->prepare($sql);
             $stmt->execute([$searchParam, $searchParam]);
         } else {
-            $sql = "SELECT id, name, description 
+            $sql = "SELECT id, name, description, type 
                     FROM vehicle_types 
                     WHERE status = 'active'
-                    ORDER BY name
+                    ORDER BY type DESC, name ASC
                     LIMIT 20";
             
             $stmt = $this->db->getConnection()->prepare($sql);
@@ -632,14 +633,14 @@ class Expertise extends Model {
         
         $stmt = $this->db->getConnection()->prepare($sql);
         return $stmt->execute([
-            $data['tipo_vehiculo'] ?? null,
+            $data['tipo_vehiculo'] ?? null,  // vehicle_type_id (ID numérico)
             $data['placa'],
             $data['marca'] ?? null,
             $data['linea'] ?? null,
             $data['modelo'] ?? null,
             $data['color'] ?? null,
             $data['clase_vehiculo'] ?? null,
-            $data['tipo_vehiculo_text'] ?? null,
+            $data['tipo_vehiculo'] ?? null,  // tipo_vehiculo (mismo ID, para compatibilidad)
             $data['tipo_carroceria'] ?? null,
             $data['tipo_combustible'] ?? null,
             $data['numero_motor'] ?? null,

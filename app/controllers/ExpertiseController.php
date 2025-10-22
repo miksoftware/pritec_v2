@@ -277,27 +277,28 @@ class ExpertiseController extends Controller {
             }
             
             // Preparar datos para actualizar
+            $vehicleTypeId = intval($_POST['tipo_vehiculo']); // ID del tipo de vehículo
+            
             $data = [
-                'tipo_vehiculo' => $_POST['tipo_vehiculo'],
+                'tipo_vehiculo' => $vehicleTypeId,  // ID numérico del tipo de vehículo
                 'placa' => $_POST['placa'],
                 'marca' => $_POST['marca'] ?? null,
                 'linea' => $_POST['linea'] ?? null,
                 'modelo' => $_POST['modelo'] ?? null,
                 'color' => $_POST['color'] ?? null,
                 'clase_vehiculo' => $_POST['clase'] ?? null,
-                'tipo_vehiculo_text' => $_POST['tipo_vehiculo_text'] ?? null,
                 'tipo_carroceria' => $_POST['tipo_carroceria'] ?? null,
-                'tipo_combustible' => $_POST['tipo_combustible'] ?? null,
+                'tipo_combustible' => null,
                 'numero_motor' => $_POST['no_motor'] ?? null,
                 'numero_chasis' => $_POST['no_chasis'] ?? null,
                 'numero_serie' => $_POST['no_serie'] ?? null,
-                'vin' => $_POST['vin'] ?? null,
-                'kilometraje' => $_POST['kilometraje'] ?? null,
+                'vin' => null,
+                'kilometraje' => !empty($_POST['kilometraje']) ? intval($_POST['kilometraje']) : null,
                 'cilindrada' => $_POST['cilindraje'] ?? null,
-                'capacidad_carga' => $_POST['capacidad_carga'] ?? null,
-                'numero_ejes' => $_POST['numero_ejes'] ?? null,
-                'numero_pasajeros' => $_POST['numero_pasajeros'] ?? null,
-                'fecha_matricula' => $_POST['fecha_matricula'] ?? null
+                'capacidad_carga' => null,
+                'numero_ejes' => null,
+                'numero_pasajeros' => null,
+                'fecha_matricula' => null
             ];
             
             // Actualizar en BD
@@ -307,10 +308,19 @@ class ExpertiseController extends Controller {
                 throw new Exception('Error al actualizar los datos del vehículo');
             }
             
+            // Obtener el tipo de vehículo para decidir el siguiente paso
+            $expertise = $this->expertiseModel->getByIdComplete($expertiseId);
+            $vehicleType = $expertise['tipo_vehiculo_type'] ?? 'carro';
+            
             $_SESSION['success'] = 'Datos del vehículo guardados correctamente';
             
-            // Redirigir al paso 3 (Inspección Carrocería)
-            $this->redirect('expertise/step3');
+            // Si es moto, saltar al paso 4 (las motos no tienen carrocería)
+            if ($vehicleType === 'moto') {
+                $this->redirect('expertise/step4');
+            } else {
+                // Si es carro, ir al paso 3 (Inspección Carrocería)
+                $this->redirect('expertise/step3');
+            }
             
         } catch (Exception $e) {
             $_SESSION['error'] = $e->getMessage();
@@ -491,7 +501,7 @@ class ExpertiseController extends Controller {
             
             $_SESSION['success'] = 'Inspección de carrocería guardada correctamente';
             
-            // Redirigir al paso 4
+            // Redirigir al paso 4 (Estructura)
             $this->redirect('expertise/step4');
             
         } catch (Exception $e) {

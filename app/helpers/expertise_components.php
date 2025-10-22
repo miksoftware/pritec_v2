@@ -4,14 +4,18 @@
  * Renderiza el indicador de progreso visual de los 12 pasos del peritaje
  * 
  * @param int $current_step El paso actual (1-12)
+ * @param string $vehicleType Tipo de vehículo ('moto' o 'carro')
  * @return void
  */
-function renderExpertiseProgressIndicator($current_step = 1) {
+function renderExpertiseProgressIndicator($current_step = 1, $vehicleType = 'carro') {
     // Validar que el paso esté en el rango correcto
     $current_step = max(1, min(12, (int)$current_step));
     
+    // Obtener total de pasos según tipo de vehículo
+    $totalSteps = getTotalSteps($vehicleType);
+    
     // Calcular porcentaje
-    $percentage = round(($current_step / 12) * 100);
+    $percentage = round(($current_step / $totalSteps) * 100);
     
     // Definir los pasos
     $steps = [
@@ -53,9 +57,14 @@ function renderExpertiseProgressIndicator($current_step = 1) {
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="text-muted">
                         <i class="fas fa-tasks me-2"></i>Progreso del Peritaje
+                        <?php if ($vehicleType === 'moto'): ?>
+                            <span class="badge bg-warning text-dark ms-2">
+                                <i class="fas fa-motorcycle"></i> Moto
+                            </span>
+                        <?php endif; ?>
                     </span>
                     <span class="badge <?= $badge_class ?>">
-                        Paso <?= $current_step ?> de 12
+                        Paso <?= $current_step ?> de <?= $totalSteps ?>
                     </span>
                 </div>
                 <div class="progress" style="height: 8px;">
@@ -70,6 +79,11 @@ function renderExpertiseProgressIndicator($current_step = 1) {
                 <div class="d-flex justify-content-between mt-2 small">
                     <?php foreach ($steps as $step_num => $step_info): ?>
                         <?php
+                        // Ocultar paso 3 (Carrocería) para motos
+                        if ($step_num == 3 && $vehicleType === 'moto') {
+                            continue;
+                        }
+                        
                         // Determinar el estado del paso
                         if ($step_num < $current_step) {
                             // Paso completado
@@ -184,4 +198,65 @@ function renderStepNavigation($current_step, $next_text = null, $submit_disabled
         </div>
     </div>
     <?php
+}
+
+/**
+ * Verificar si un paso debe mostrarse según el tipo de vehículo
+ * @param int $step Número del paso (1-12)
+ * @param string $vehicleType Tipo de vehículo ('moto' o 'carro')
+ * @return bool True si el paso debe mostrarse
+ */
+function shouldShowStep($step, $vehicleType) {
+    // El paso 3 (Carrocería) solo aplica para carros
+    if ($step == 3 && $vehicleType === 'moto') {
+        return false;
+    }
+    
+    // Todos los demás pasos se muestran para ambos tipos
+    return true;
+}
+
+/**
+ * Obtener el siguiente paso válido según el tipo de vehículo
+ * @param int $currentStep Paso actual
+ * @param string $vehicleType Tipo de vehículo ('moto' o 'carro')
+ * @return int Siguiente paso válido
+ */
+function getNextStep($currentStep, $vehicleType) {
+    $nextStep = $currentStep + 1;
+    
+    // Si el siguiente paso es 3 y es moto, saltar a 4
+    if ($nextStep == 3 && $vehicleType === 'moto') {
+        return 4;
+    }
+    
+    return $nextStep;
+}
+
+/**
+ * Obtener el paso anterior válido según el tipo de vehículo
+ * @param int $currentStep Paso actual
+ * @param string $vehicleType Tipo de vehículo ('moto' o 'carro')
+ * @return int Paso anterior válido
+ */
+function getPreviousStep($currentStep, $vehicleType) {
+    $previousStep = $currentStep - 1;
+    
+    // Si el paso anterior es 3 y es moto, retroceder a 2
+    if ($previousStep == 3 && $vehicleType === 'moto') {
+        return 2;
+    }
+    
+    return $previousStep;
+}
+
+/**
+ * Obtener el total de pasos según el tipo de vehículo
+ * @param string $vehicleType Tipo de vehículo ('moto' o 'carro')
+ * @return int Total de pasos
+ */
+function getTotalSteps($vehicleType) {
+    // Las motos tienen 11 pasos (sin carrocería)
+    // Los carros tienen 12 pasos
+    return ($vehicleType === 'moto') ? 11 : 12;
 }
