@@ -34,7 +34,10 @@ class ExpertiseController extends Controller {
             $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
             $limit = 20; // Registros por página
             
-            // Obtener peritajes con paginación
+            // Obtener peritajes en progreso del usuario
+            $inProgress = $this->expertiseModel->getInProgressByUser($_SESSION['user_id']);
+            
+            // Obtener peritajes completados con paginación
             $expertises = $this->expertiseModel->getAllWithRelations($page, $limit, $search, $month);
             
             // Obtener total para la paginación
@@ -47,6 +50,7 @@ class ExpertiseController extends Controller {
             $data = [
                 'title' => 'Peritajes Completos',
                 'expertises' => $expertises,
+                'inProgress' => $inProgress,
                 'pagination' => $pagination,
                 'current_page' => $page,
                 'total_pages' => $totalPages,
@@ -1506,8 +1510,11 @@ class ExpertiseController extends Controller {
      */
     public function step12() {
         try {
-            // Obtener expertise_id de la sesión
-            $expertiseId = $_SESSION['expertise_id'] ?? null;
+            // Verificar si viene un ID por GET (desde el botón de "Ver Resumen y Continuar")
+            $requestedId = isset($_GET['id']) ? intval($_GET['id']) : null;
+            
+            // Obtener expertise_id de la sesión o del parámetro GET
+            $expertiseId = $requestedId ?? $_SESSION['expertise_id'] ?? null;
             
             if (!$expertiseId) {
                 // Intentar recuperar último borrador
@@ -1519,6 +1526,23 @@ class ExpertiseController extends Controller {
                 } else {
                     throw new Exception('No se encontró un peritaje en progreso. Por favor, inicie un nuevo peritaje.');
                 }
+            }
+            
+            // Si viene un ID por GET, validar que el usuario sea el dueño y cargar en sesión
+            if ($requestedId) {
+                $expertise = $this->expertiseModel->getByIdComplete($requestedId);
+                
+                if (!$expertise) {
+                    throw new Exception('No se pudo cargar el peritaje');
+                }
+                
+                if ($expertise['user_id'] != $_SESSION['user_id']) {
+                    throw new Exception('No tiene permisos para ver este peritaje');
+                }
+                
+                // Cargar en sesión para poder continuar editando
+                $_SESSION['expertise_id'] = $requestedId;
+                $expertiseId = $requestedId;
             }
             
             // Obtener datos completos del expertise desde BD
@@ -1541,7 +1565,92 @@ class ExpertiseController extends Controller {
             $inspeccionesEstructura = $this->expertiseModel->getInspectionsBySection($expertiseId, 'estructura');
             $inspeccionesChasis = $this->expertiseModel->getInspectionsBySection($expertiseId, 'chasis');
             
-            // Preparar datos para la vista (simulando estructura de sesión para compatibilidad)
+            // Cargar todos los datos en sesión para que la vista los pueda leer
+            // Paso 1: Información del Servicio
+            $_SESSION['expertise_step1'] = [
+                'service_date' => $expertise['service_date'],
+                'service_number' => $expertise['service_number'],
+                'service_for' => $expertise['service_for'],
+                'agreement' => $expertise['agreement'],
+                'client_name' => ($expertise['cliente_nombre'] ?? '') . ' ' . ($expertise['cliente_apellido'] ?? '')
+            ];
+            
+            // Paso 2: Datos del Vehículo
+            $_SESSION['expertise_step2'] = [
+                'placa' => $expertise['placa'],
+                'marca' => $expertise['marca'],
+                'linea' => $expertise['linea'],
+                'modelo' => $expertise['modelo'],
+                'color' => $expertise['color'],
+                'kilometraje' => $expertise['kilometraje'],
+                'numero_motor' => $expertise['numero_motor'],
+                'numero_chasis' => $expertise['numero_chasis'],
+                'numero_serie' => $expertise['numero_serie'],
+                'vin' => $expertise['vin']
+            ];
+            
+            // Paso 3, 4, 5: Inspecciones (ya cargadas arriba)
+            $_SESSION['expertise_step3'] = [
+                'inspecciones' => $inspeccionesCarroceria
+            ];
+            
+            $_SESSION['expertise_step4'] = [
+                'inspecciones' => $inspeccionesEstructura
+            ];
+            
+            $_SESSION['expertise_step5'] = [
+                'inspecciones' => $inspeccionesChasis
+            ];
+            
+            // Paso 6: Llantas
+            $_SESSION['expertise_step6'] = [
+                'llanta_anterior_izquierda' => $expertise['llanta_anterior_izquierda'],
+                'llanta_anterior_derecha' => $expertise['llanta_anterior_derecha'],
+                'llanta_posterior_izquierda' => $expertise['llanta_posterior_izquierda'],
+                'llanta_posterior_derecha' => $expertise['llanta_posterior_derecha'],
+                'observaciones_llantas' => $expertise['observaciones_llantas']
+            ];
+            
+            // Paso 7: Amortiguadores
+            $_SESSION['expertise_step7'] = [
+                'amortiguador_anterior_izquierdo' => $expertise['amortiguador_anterior_izquierdo'],
+                'amortiguador_anterior_derecho' => $expertise['amortiguador_anterior_derecho'],
+                'amortiguador_posterior_izquierdo' => $expertise['amortiguador_posterior_izquierdo'],
+                'amortiguador_posterior_derecho' => $expertise['amortiguador_posterior_derecho'],
+                'observaciones_amortiguadores' => $expertise['observaciones_amortiguadores']
+            ];
+            
+            // Paso 8: Batería
+            $_SESSION['expertise_step8'] = [
+                'prueba_bateria' => $expertise['prueba_bateria'],
+                'prueba_arranque' => $expertise['prueba_arranque'],
+                'carga_bateria' => $expertise['carga_bateria'],
+                'observaciones_bateria' => $expertise['observaciones_bateria']
+            ];
+            
+            // Paso 9: Motor y Sistemas (decodificar si es string JSON)
+            if (!empty($expertise['motor_sistemas_data'])) {
+                if (is_string($expertise['motor_sistemas_data'])) {
+                    $_SESSION['expertise_step9'] = json_decode($expertise['motor_sistemas_data'], true) ?? [];
+                } else {
+                    $_SESSION['expertise_step9'] = $expertise['motor_sistemas_data'];
+                }
+            } else {
+                $_SESSION['expertise_step9'] = [];
+            }
+            
+            // Paso 10: Fugas y Niveles (decodificar si es string JSON)
+            if (!empty($expertise['fugas_niveles_data'])) {
+                if (is_string($expertise['fugas_niveles_data'])) {
+                    $_SESSION['expertise_step10'] = json_decode($expertise['fugas_niveles_data'], true) ?? [];
+                } else {
+                    $_SESSION['expertise_step10'] = $expertise['fugas_niveles_data'];
+                }
+            } else {
+                $_SESSION['expertise_step10'] = [];
+            }
+            
+            // Paso 11: Fotos
             $_SESSION['expertise_step11'] = [
                 'total_fotos' => count($fotos),
                 'fotos' => $fotos
@@ -1554,7 +1663,9 @@ class ExpertiseController extends Controller {
                 'fotos' => $fotos,
                 'total_inspeccionesCarroceria' => count($inspeccionesCarroceria),
                 'total_inspeccionesEstructura' => count($inspeccionesEstructura),
-                'total_inspeccionesChasis' => count($inspeccionesChasis)
+                'total_inspeccionesChasis' => count($inspeccionesChasis),
+                'expertise_id' => $expertiseId,
+                'view_mode' => false // Modo resumen para continuar editando
             ];
             
             $this->view('expertise/step12', $data);

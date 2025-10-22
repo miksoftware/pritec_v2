@@ -5,28 +5,146 @@
 if (!function_exists('renderIndexView')) {
     require_once APP_PATH . '/helpers/autoload.php';
 }
+?>
 
-// Configurar la vista index usando la plantilla estándar
+<!-- Sección de Peritajes en Progreso -->
+<?php if (!empty($inProgress)): ?>
+<div class="container-fluid mb-4">
+    <div class="alert alert-warning border-0 shadow-sm" role="alert">
+        <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-hourglass-half me-2"></i>
+            <strong>Tienes <?= count($inProgress) ?> peritaje<?= count($inProgress) > 1 ? 's' : '' ?> en progreso</strong>
+        </div>
+        <small class="text-muted">Continúa donde lo dejaste para finalizarlos</small>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th width="100">Paso</th>
+                    <th>Vehículo</th>
+                    <th>Cliente</th>
+                    <th width="120" class="text-center">Progreso</th>
+                    <th width="100" class="text-center">Datos</th>
+                    <th width="200">Última Actualización</th>
+                    <th width="200" class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($inProgress as $peritaje): ?>
+                <tr class="align-middle">
+                    <!-- Paso actual -->
+                    <td>
+                        <span class="badge bg-warning text-dark fs-6">
+                            <?= $peritaje['current_step'] ?>/12
+                        </span>
+                    </td>
+
+                    <!-- Información del vehículo -->
+                    <td>
+                        <div>
+                            <strong class="text-dark"><?= htmlspecialchars($peritaje['placa'] ?: 'Sin placa') ?></strong>
+                            <?php if ($peritaje['marca']): ?>
+                            <br>
+                            <small class="text-muted">
+                                <?= htmlspecialchars($peritaje['marca']) ?> 
+                                <?= htmlspecialchars($peritaje['linea'] ?? '') ?>
+                                <?= htmlspecialchars($peritaje['modelo'] ?? '') ?>
+                            </small>
+                            <?php endif; ?>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-hashtag"></i> <?= htmlspecialchars($peritaje['service_number']) ?>
+                            </small>
+                        </div>
+                    </td>
+
+                    <!-- Cliente -->
+                    <td>
+                        <?php if ($peritaje['cliente_nombre']): ?>
+                        <small>
+                            <i class="fas fa-user text-muted me-1"></i>
+                            <?= htmlspecialchars($peritaje['cliente_nombre'] . ' ' . $peritaje['cliente_apellido']) ?>
+                        </small>
+                        <?php else: ?>
+                        <small class="text-muted">—</small>
+                        <?php endif; ?>
+                    </td>
+
+                    <!-- Progreso -->
+                    <td class="text-center">
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-warning" 
+                                 role="progressbar" 
+                                 style="width: <?= ($peritaje['current_step'] / 12) * 100 ?>%" 
+                                 aria-valuenow="<?= $peritaje['current_step'] ?>" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="12">
+                                <small class="fw-bold"><?= round(($peritaje['current_step'] / 12) * 100) ?>%</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Datos (Inspecciones y Fotos) -->
+                    <td class="text-center">
+                        <small class="d-block">
+                            <i class="fas fa-search text-info"></i> <?= $peritaje['total_inspecciones'] ?>
+                        </small>
+                        <small class="d-block">
+                            <i class="fas fa-camera text-warning"></i> <?= $peritaje['total_fotos'] ?>
+                        </small>
+                    </td>
+
+                    <!-- Última actualización -->
+                    <td>
+                        <small class="text-muted">
+                            <?= date('d/m/Y H:i', strtotime($peritaje['updated_at'])) ?>
+                        </small>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="<?= APP_URL ?>expertise/step12?id=<?= $peritaje['id'] ?>" 
+                               class="btn btn-warning"
+                               title="Ver resumen completo">
+                                <i class="fas fa-clipboard-list"></i>
+                            </a>
+                            <a href="<?= APP_URL ?>expertise/edit/<?= $peritaje['id'] ?>/<?= $peritaje['current_step'] ?>" 
+                               class="btn btn-outline-secondary"
+                               title="Continuar en paso <?= $peritaje['current_step'] ?>">
+                                <i class="fas fa-play"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php
 renderIndexView([
     'title' => 'Peritajes Completos',
-    'subtitle' => 'Gestión y consulta de peritajes completos realizados',
+    'subtitle' => 'Gestión y consulta de peritajes finalizados',
     'icon' => 'fas fa-clipboard-check',
     'module_name' => 'peritajes_completos',
     'show_stats' => true,
     'stats' => [
         [
-            'title' => 'Total Peritajes',
+            'title' => 'Completados',
             'value' => count($expertises),
-            'icon' => 'fas fa-clipboard-check',
-            'color' => 'primary'
+            'icon' => 'fas fa-check-circle',
+            'color' => 'success'
         ],
         [
-            'title' => 'Este Mes',
-            'value' => count(array_filter($expertises, function($e) {
-                return strpos($e['created_at'], date('Y-m')) === 0;
-            })),
-            'icon' => 'fas fa-calendar',
-            'color' => 'success'
+            'title' => 'En Progreso',
+            'value' => count($inProgress ?? []),
+            'icon' => 'fas fa-hourglass-half',
+            'color' => 'warning'
         ],
         [
             'title' => 'Total Inspecciones',
@@ -38,7 +156,7 @@ renderIndexView([
             'title' => 'Total Fotos',
             'value' => number_format(array_sum(array_column($expertises, 'total_fotos'))),
             'icon' => 'fas fa-camera',
-            'color' => 'warning'
+            'color' => 'primary'
         ]
     ],
     'show_filters' => true,

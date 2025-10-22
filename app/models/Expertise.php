@@ -954,5 +954,32 @@ class Expertise extends Model {
         $stmt = $this->db->getConnection()->prepare($sql);
         return $stmt->execute([$id]);
     }
+    
+    /**
+     * Obtener peritajes en progreso del usuario actual
+     * @param int $userId ID del usuario
+     * @return array Lista de peritajes en progreso
+     */
+    public function getInProgressByUser($userId) {
+        $sql = "SELECT 
+                    e.*,
+                    c.first_name as cliente_nombre,
+                    c.last_name as cliente_apellido,
+                    c.phone as cliente_telefono,
+                    vt.name as tipo_vehiculo_nombre,
+                    (SELECT COUNT(*) FROM expertise_inspections WHERE expertise_id = e.id) as total_inspecciones,
+                    (SELECT COUNT(*) FROM expertise_photos WHERE expertise_id = e.id) as total_fotos
+                FROM expertises e
+                LEFT JOIN clients c ON e.client_id = c.id
+                LEFT JOIN vehicle_types vt ON e.tipo_vehiculo = vt.id
+                WHERE e.user_id = ? 
+                AND e.status IN ('draft', 'in_progress')
+                ORDER BY e.updated_at DESC";
+        
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute([$userId]);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
