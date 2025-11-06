@@ -2003,4 +2003,73 @@ class ExpertiseController extends Controller {
         }
     }
     
+    /**
+     * Generar PDF de un peritaje
+     * @param int $id ID del expertise
+     */
+    public function generatePDF($id) {
+        try {
+            // Obtener datos completos del peritaje
+            $expertise = $this->expertiseModel->getByIdWithRelations($id);
+            
+            if (!$expertise) {
+                throw new Exception('Peritaje no encontrado');
+            }
+            
+            // Verificar que el usuario tenga acceso
+            if ($expertise['user_id'] != $_SESSION['user_id'] && $_SESSION['role'] != 'admin') {
+                throw new Exception('No tienes permiso para ver este peritaje');
+            }
+            
+            // Preparar datos para la vista
+            $data = [
+                'BASE_URL' => APP_URL,
+                'peritaje' => [
+                    'fecha' => $expertise['service_date'] ?? date('Y-m-d'),
+                    'no_servicio' => $expertise['service_number'] ?? 'N/A',
+                    'servicio_para' => $expertise['service_for'] ?? 'N/A',
+                    'convenio' => $expertise['agreement'] ?? 'N/A',
+                    'clase' => $expertise['clase_vehiculo'] ?? 'N/A',
+                    'marca' => $expertise['marca'] ?? 'N/A',
+                    'linea' => $expertise['linea'] ?? 'N/A',
+                    'cilindraje' => $expertise['cilindrada'] ?? 'N/A',
+                    'kilometraje' => $expertise['kilometraje'] ?? 'N/A',
+                    'servicio' => $expertise['tipo_combustible'] ?? 'N/A',
+                    'modelo' => $expertise['modelo'] ?? 'N/A',
+                    'color' => $expertise['color'] ?? 'N/A',
+                    'no_chasis' => $expertise['numero_chasis'] ?? 'N/A',
+                    'no_motor' => $expertise['numero_motor'] ?? 'N/A',
+                    'no_serie' => $expertise['numero_serie'] ?? 'N/A',
+                    'tipo_carroceria' => $expertise['tipo_carroceria'] ?? 'N/A',
+                    'organismo_transito' => $expertise['organismo_transito'] ?? 'N/A',
+                    'codigo_fasecolda' => $expertise['codigo_fasecolda'] ?? 'N/A',
+                    'valor_fasecolda' => $expertise['valor_fasecolda'] ?? 'N/A',
+                    'valor_sugerido' => $expertise['valor_sugerido'] ?? 'N/A',
+                    'valor_accesorios' => $expertise['valor_accesorios'] ?? 'N/A',
+                    'placa' => $expertise['placa'] ?? 'N/A',
+                    'nombre_apellidos' => trim(($expertise['cliente_nombre'] ?? '') . ' ' . ($expertise['cliente_apellido'] ?? '')),
+                    'identificacion' => $expertise['cliente_identificacion'] ?? 'N/A',
+                    'telefono' => $expertise['cliente_telefono'] ?? 'N/A',
+                    'direccion' => $expertise['cliente_direccion'] ?? 'N/A',
+                    'email' => $expertise['cliente_email'] ?? 'N/A',
+                    'tipo_vehiculo' => $expertise['tipo_vehiculo_nombre'] ?? 'VEHÍCULO',
+                    'observaciones_inspeccion' => $expertise['observaciones_inspeccion'] ?? 'Sin observaciones',
+                    'observaciones_estructura' => $expertise['observaciones_estructura'] ?? 'Sin observaciones',
+                    'prueba_bateria' => $expertise['prueba_bateria'] ?? 'N/A',
+                    'prueba_escaner' => $expertise['prueba_escaner'] ?? 'Sin datos',
+                ],
+                'carroceria' => [], // TODO: Cargar piezas de carrocería
+                'estructura' => [], // TODO: Cargar piezas de estructura
+                'chasis' => [], // TODO: Cargar piezas de chasis
+            ];
+            
+            // Cargar vista HTML (el usuario puede imprimir a PDF desde el navegador)
+            $this->view('pdf_expertise', $data);
+            
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Error al generar PDF: ' . $e->getMessage();
+            $this->redirect('expertise');
+        }
+    }
+    
 }
