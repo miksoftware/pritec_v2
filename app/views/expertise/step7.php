@@ -20,9 +20,12 @@ renderContentHeader('Nuevo Peritaje Completo', [
         ['text' => 'Nuevo Peritaje Completo', 'url' => null]
     ])
 ]);
+
+// Detectar tipo de vehículo
+$vehicleType = $expertise['tipo_vehiculo_type'] ?? 'carro';
 ?>
 
-<?php renderExpertiseProgressIndicator(7); ?>
+<?php renderExpertiseProgressIndicator(7, $vehicleType); ?>
 
 <!-- Content Body -->
 <div class="content-body">
@@ -49,112 +52,181 @@ renderContentHeader('Nuevo Peritaje Completo', [
                         
                         <!-- Ilustración de Amortiguadores -->
                         <div class="alert alert-light border mb-4">
-                            <div class="row text-center">
-                                <div class="col-md-6">
-                                    <div class="p-3 bg-white rounded shadow-sm mb-2">
-                                        <i class="fas fa-arrows-alt-v fa-3x text-info mb-2"></i>
-                                        <p class="mb-0 fw-bold">Anterior Izquierdo</p>
+                            <?php if ($vehicleType === 'moto'): ?>
+                                <!-- Ilustración para Moto (2 amortiguadores) -->
+                                <div class="row text-center">
+                                    <div class="col-md-6 offset-md-3">
+                                        <div class="p-3 bg-white rounded shadow-sm mb-3">
+                                            <i class="fas fa-arrows-alt-v fa-4x text-info mb-2"></i>
+                                            <p class="mb-0 fw-bold">Amortiguador Delantero</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="p-3 bg-white rounded shadow-sm mb-2">
-                                        <i class="fas fa-arrows-alt-v fa-3x text-info mb-2"></i>
-                                        <p class="mb-0 fw-bold">Anterior Derecho</p>
+                                <div class="text-center my-3">
+                                    <i class="fas fa-motorcycle fa-4x text-warning"></i>
+                                </div>
+                                <div class="row text-center">
+                                    <div class="col-md-6 offset-md-3">
+                                        <div class="p-3 bg-white rounded shadow-sm">
+                                            <i class="fas fa-arrows-alt-v fa-4x text-info mb-2"></i>
+                                            <p class="mb-0 fw-bold">Amortiguador Trasero</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="text-center my-3">
-                                <i class="fas fa-car fa-3x text-primary"></i>
-                            </div>
-                            <div class="row text-center">
-                                <div class="col-md-6">
-                                    <div class="p-3 bg-white rounded shadow-sm">
-                                        <i class="fas fa-arrows-alt-v fa-3x text-info mb-2"></i>
-                                        <p class="mb-0 fw-bold">Posterior Izquierdo</p>
+                            <?php else: ?>
+                                <!-- Ilustración para Carro (4 amortiguadores) -->
+                                <div class="row text-center">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded shadow-sm mb-2">
+                                            <i class="fas fa-arrows-alt-v fa-3x text-info mb-2"></i>
+                                            <p class="mb-0 fw-bold">Anterior Izquierdo</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded shadow-sm mb-2">
+                                            <i class="fas fa-arrows-alt-v fa-3x text-info mb-2"></i>
+                                            <p class="mb-0 fw-bold">Anterior Derecho</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="p-3 bg-white rounded shadow-sm">
-                                        <i class="fas fa-arrows-alt-v fa-3x text-info mb-2"></i>
-                                        <p class="mb-0 fw-bold">Posterior Derecho</p>
+                                <div class="text-center my-3">
+                                    <i class="fas fa-car fa-3x text-primary"></i>
+                                </div>
+                                <div class="row text-center">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded shadow-sm">
+                                            <i class="fas fa-arrows-alt-v fa-3x text-info mb-2"></i>
+                                            <p class="mb-0 fw-bold">Posterior Izquierdo</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded shadow-sm">
+                                            <i class="fas fa-arrows-alt-v fa-3x text-info mb-2"></i>
+                                            <p class="mb-0 fw-bold">Posterior Derecho</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            <?php endif; ?>
                         </div>
                         
                         <!-- Campos de Porcentaje -->
                         <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label for="amortiguador_anterior_izquierdo" class="form-label fw-bold">
-                                    <i class="fas fa-arrows-alt-v text-info me-2"></i>
-                                    Anterior Izquierdo (%)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="amortiguador_anterior_izquierdo"
-                                    class="form-control form-control-lg" 
-                                    name="amortiguador_anterior_izquierdo" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="0-100"
-                                    value="<?= htmlspecialchars($expertise['amortiguador_anterior_izquierdo'] ?? '') ?>"
-                                    required>
-                                <small class="text-muted">Porcentaje de vida útil</small>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3">
-                                <label for="amortiguador_anterior_derecho" class="form-label fw-bold">
-                                    <i class="fas fa-arrows-alt-v text-info me-2"></i>
-                                    Anterior Derecho (%)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="amortiguador_anterior_derecho"
-                                    class="form-control form-control-lg" 
-                                    name="amortiguador_anterior_derecho" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="0-100"
-                                    value="<?= htmlspecialchars($expertise['amortiguador_anterior_derecho'] ?? '') ?>"
-                                    required>
-                                <small class="text-muted">Porcentaje de vida útil</small>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3">
-                                <label for="amortiguador_posterior_izquierdo" class="form-label fw-bold">
-                                    <i class="fas fa-arrows-alt-v text-info me-2"></i>
-                                    Posterior Izquierdo (%)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="amortiguador_posterior_izquierdo"
-                                    class="form-control form-control-lg" 
-                                    name="amortiguador_posterior_izquierdo" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="0-100"
-                                    value="<?= htmlspecialchars($expertise['amortiguador_posterior_izquierdo'] ?? '') ?>"
-                                    required>
-                                <small class="text-muted">Porcentaje de vida útil</small>
-                            </div>
-                            
-                            <div class="col-md-3 mb-3">
-                                <label for="amortiguador_posterior_derecho" class="form-label fw-bold">
-                                    <i class="fas fa-arrows-alt-v text-info me-2"></i>
-                                    Posterior Derecho (%)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="amortiguador_posterior_derecho"
-                                    class="form-control form-control-lg" 
-                                    name="amortiguador_posterior_derecho" 
-                                    min="0" 
-                                    max="100"
-                                    placeholder="0-100"
-                                    value="<?= htmlspecialchars($expertise['amortiguador_posterior_derecho'] ?? '') ?>"
-                                    required>
-                                <small class="text-muted">Porcentaje de vida útil</small>
-                            </div>
+                            <?php if ($vehicleType === 'moto'): ?>
+                                <!-- Campos para Moto (2 amortiguadores) -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="amortiguador_anterior_derecho" class="form-label fw-bold">
+                                        <i class="fas fa-arrows-alt-v text-info me-2"></i>
+                                        Amortiguador Delantero (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="amortiguador_anterior_derecho"
+                                        class="form-control form-control-lg" 
+                                        name="amortiguador_anterior_derecho" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['amortiguador_anterior_derecho'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil del amortiguador delantero</small>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="amortiguador_posterior_derecho" class="form-label fw-bold">
+                                        <i class="fas fa-arrows-alt-v text-info me-2"></i>
+                                        Amortiguador Trasero (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="amortiguador_posterior_derecho"
+                                        class="form-control form-control-lg" 
+                                        name="amortiguador_posterior_derecho" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['amortiguador_posterior_derecho'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil del amortiguador trasero</small>
+                                </div>
+                                
+                                <!-- Campos ocultos para amortiguadores izquierdos (no se usan en motos) -->
+                                <input type="hidden" name="amortiguador_anterior_izquierdo" value="0">
+                                <input type="hidden" name="amortiguador_posterior_izquierdo" value="0">
+                                
+                            <?php else: ?>
+                                <!-- Campos para Carro (4 amortiguadores) -->
+                                <div class="col-md-3 mb-3">
+                                    <label for="amortiguador_anterior_izquierdo" class="form-label fw-bold">
+                                        <i class="fas fa-arrows-alt-v text-info me-2"></i>
+                                        Anterior Izquierdo (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="amortiguador_anterior_izquierdo"
+                                        class="form-control form-control-lg" 
+                                        name="amortiguador_anterior_izquierdo" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['amortiguador_anterior_izquierdo'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil</small>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3">
+                                    <label for="amortiguador_anterior_derecho" class="form-label fw-bold">
+                                        <i class="fas fa-arrows-alt-v text-info me-2"></i>
+                                        Anterior Derecho (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="amortiguador_anterior_derecho"
+                                        class="form-control form-control-lg" 
+                                        name="amortiguador_anterior_derecho" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['amortiguador_anterior_derecho'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil</small>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3">
+                                    <label for="amortiguador_posterior_izquierdo" class="form-label fw-bold">
+                                        <i class="fas fa-arrows-alt-v text-info me-2"></i>
+                                        Posterior Izquierdo (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="amortiguador_posterior_izquierdo"
+                                        class="form-control form-control-lg" 
+                                        name="amortiguador_posterior_izquierdo" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['amortiguador_posterior_izquierdo'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil</small>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3">
+                                    <label for="amortiguador_posterior_derecho" class="form-label fw-bold">
+                                        <i class="fas fa-arrows-alt-v text-info me-2"></i>
+                                        Posterior Derecho (%)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="amortiguador_posterior_derecho"
+                                        class="form-control form-control-lg" 
+                                        name="amortiguador_posterior_derecho" 
+                                        min="0" 
+                                        max="100"
+                                        placeholder="0-100"
+                                        value="<?= htmlspecialchars($expertise['amortiguador_posterior_derecho'] ?? '') ?>"
+                                        required>
+                                    <small class="text-muted">Porcentaje de vida útil</small>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         
                         <!-- Indicador de Estado -->

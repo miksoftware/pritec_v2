@@ -83,7 +83,7 @@ renderContentHeader('Nuevo Peritaje Completo', [
                                     class="form-control" 
                                     name="observaciones_chasis" 
                                     rows="4"
-                                    placeholder="Ingrese observaciones generales sobre la inspección del chasis..."></textarea>
+                                    placeholder="Ingrese observaciones generales sobre la inspección del chasis..."><?= htmlspecialchars($expertise['observaciones_chasis'] ?? '') ?></textarea>
                             </div>
                         </div>
                         
@@ -142,7 +142,11 @@ renderContentHeader('Nuevo Peritaje Completo', [
 <!-- Script para inspección de chasis -->
 <script>
     // Pasar datos PHP a JavaScript
-    const VEHICLE_TYPE_ID = <?= isset($_SESSION['expertise_step2']['tipo_vehiculo']) ? $_SESSION['expertise_step2']['tipo_vehiculo'] : 'null' ?>;
+    <?php if (empty($expertise['tipo_vehiculo'])): ?>
+        alert('Error: No se pudo obtener el tipo de vehículo. Por favor, regrese al paso 2.');
+        window.location.href = '<?= APP_URL ?>expertise/step2';
+    <?php endif; ?>
+    const VEHICLE_TYPE_ID = <?= !empty($expertise['tipo_vehiculo']) ? intval($expertise['tipo_vehiculo']) : 'null' ?>;
     const SECTION_NAME = 'chasis';
 </script>
 <script src="<?= ASSETS_URL ?>js/expertise-step5.js"></script>

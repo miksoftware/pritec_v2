@@ -201,6 +201,21 @@ function renderStepNavigation($current_step, $next_text = null, $submit_disabled
 }
 
 /**
+ * Obtener lista de pasos válidos según el tipo de vehículo
+ * @param string $vehicleType Tipo de vehículo ('moto' o 'carro')
+ * @return array Array con los números de pasos válidos
+ */
+function getValidStepsForVehicle($vehicleType) {
+    if ($vehicleType === 'moto') {
+        // Motos: todos los pasos excepto el 3 (Carrocería)
+        return [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    } else {
+        // Carros: todos los pasos del 1 al 12
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    }
+}
+
+/**
  * Verificar si un paso debe mostrarse según el tipo de vehículo
  * @param int $step Número del paso (1-12)
  * @param string $vehicleType Tipo de vehículo ('moto' o 'carro')

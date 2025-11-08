@@ -12,7 +12,7 @@
         document.getElementById('amortiguador_anterior_derecho'),
         document.getElementById('amortiguador_posterior_izquierdo'),
         document.getElementById('amortiguador_posterior_derecho')
-    ];
+    ].filter(input => input !== null); // Filtrar solo los inputs que existen (motos tienen solo 2)
     
     /**
      * Inicializar

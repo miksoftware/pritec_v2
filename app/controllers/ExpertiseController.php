@@ -949,23 +949,41 @@ class ExpertiseController extends Controller {
                 throw new Exception('No se encontró un peritaje en progreso');
             }
             
+            // Obtener el tipo de vehículo para validación
+            $expertise = $this->expertiseModel->getByIdComplete($expertiseId);
+            $vehicleType = $expertise['tipo_vehiculo_type'] ?? 'carro';
+            
             // Obtener datos de amortiguadores
             $amortiguador_anterior_izquierdo = isset($_POST['amortiguador_anterior_izquierdo']) ? intval($_POST['amortiguador_anterior_izquierdo']) : null;
             $amortiguador_anterior_derecho = isset($_POST['amortiguador_anterior_derecho']) ? intval($_POST['amortiguador_anterior_derecho']) : null;
             $amortiguador_posterior_izquierdo = isset($_POST['amortiguador_posterior_izquierdo']) ? intval($_POST['amortiguador_posterior_izquierdo']) : null;
             $amortiguador_posterior_derecho = isset($_POST['amortiguador_posterior_derecho']) ? intval($_POST['amortiguador_posterior_derecho']) : null;
             
-            // Validar que todos los porcentajes estén en el rango 0-100
-            $porcentajes = [
-                'anterior_izquierdo' => $amortiguador_anterior_izquierdo,
-                'anterior_derecho' => $amortiguador_anterior_derecho,
-                'posterior_izquierdo' => $amortiguador_posterior_izquierdo,
-                'posterior_derecho' => $amortiguador_posterior_derecho
-            ];
-            
-            foreach ($porcentajes as $nombre => $valor) {
-                if ($valor === null || $valor < 0 || $valor > 100) {
-                    throw new Exception('El porcentaje del amortiguador ' . str_replace('_', ' ', $nombre) . ' debe estar entre 0 y 100');
+            // Validar según el tipo de vehículo
+            if ($vehicleType === 'moto') {
+                // Para motos: solo validar delantero y trasero (derecho)
+                if ($amortiguador_anterior_derecho === null || $amortiguador_anterior_derecho < 0 || $amortiguador_anterior_derecho > 100) {
+                    throw new Exception('El porcentaje del amortiguador delantero debe estar entre 0 y 100');
+                }
+                if ($amortiguador_posterior_derecho === null || $amortiguador_posterior_derecho < 0 || $amortiguador_posterior_derecho > 100) {
+                    throw new Exception('El porcentaje del amortiguador trasero debe estar entre 0 y 100');
+                }
+                // Los amortiguadores izquierdos se guardan como 0 para motos
+                $amortiguador_anterior_izquierdo = 0;
+                $amortiguador_posterior_izquierdo = 0;
+            } else {
+                // Para carros: validar los 4 amortiguadores
+                $porcentajes = [
+                    'anterior_izquierdo' => $amortiguador_anterior_izquierdo,
+                    'anterior_derecho' => $amortiguador_anterior_derecho,
+                    'posterior_izquierdo' => $amortiguador_posterior_izquierdo,
+                    'posterior_derecho' => $amortiguador_posterior_derecho
+                ];
+                
+                foreach ($porcentajes as $nombre => $valor) {
+                    if ($valor === null || $valor < 0 || $valor > 100) {
+                        throw new Exception('El porcentaje del amortiguador ' . str_replace('_', ' ', $nombre) . ' debe estar entre 0 y 100');
+                    }
                 }
             }
             
@@ -1442,8 +1460,8 @@ class ExpertiseController extends Controller {
             
             $fotos_guardadas = [];
             
-            // Crear directorio para fotos si no existe (usar ruta accesible desde web)
-            $upload_dir = __DIR__ . '/../../uploads/expertise/';
+            // Crear directorio para fotos si no existe (usar ruta accesible desde web en public/)
+            $upload_dir = __DIR__ . '/../../public/uploads/expertise/';
             
             // Normalizar ruta para Windows
             $upload_dir = str_replace('\\', '/', $upload_dir);
@@ -1496,7 +1514,7 @@ class ExpertiseController extends Controller {
                     $fotos_guardadas[] = [
                         'nombre_original' => $file_name,
                         'nombre_guardado' => $nuevo_nombre,
-                        'ruta' => 'uploads/expertise/' . $nuevo_nombre,
+                        'ruta' => 'public/uploads/expertise/' . $nuevo_nombre,
                         'size' => $file_size,
                         'extension' => $file_ext
                     ];
@@ -2058,9 +2076,9 @@ class ExpertiseController extends Controller {
                     'prueba_bateria' => $expertise['prueba_bateria'] ?? 'N/A',
                     'prueba_escaner' => $expertise['prueba_escaner'] ?? 'Sin datos',
                 ],
-                'carroceria' => [], // TODO: Cargar piezas de carrocería
-                'estructura' => [], // TODO: Cargar piezas de estructura
-                'chasis' => [], // TODO: Cargar piezas de chasis
+                'carroceria' => $this->getInspectionDataWithImage($id, $expertise['tipo_vehiculo'], 'carroceria'),
+                'estructura' => $this->getInspectionDataWithImage($id, $expertise['tipo_vehiculo'], 'estructura'),
+                'chasis' => $this->getInspectionDataWithImage($id, $expertise['tipo_vehiculo'], 'chasis'),
             ];
             
             // Cargar vista HTML (el usuario puede imprimir a PDF desde el navegador)
@@ -2069,6 +2087,67 @@ class ExpertiseController extends Controller {
         } catch (Exception $e) {
             $_SESSION['error'] = 'Error al generar PDF: ' . $e->getMessage();
             $this->redirect('expertise');
+        }
+    }
+    
+    /**
+     * Obtener datos de inspección con imagen de la sección
+     * @param int $expertiseId ID del expertise
+     * @param int $vehicleTypeId ID del tipo de vehículo
+     * @param string $section Nombre de la sección (carroceria, estructura, chasis)
+     * @return array Array con 'image' y 'pieces'
+     */
+    private function getInspectionDataWithImage($expertiseId, $vehicleTypeId, $section) {
+        try {
+            // Obtener la imagen de la sección del tipo de vehículo
+            $conn = $this->db->getConnection();
+            
+            // Consulta para obtener la imagen de la sección
+            $sqlImage = "SELECT image_path FROM vehicle_sections 
+                        WHERE vehicle_type_id = ? AND section_name = ? 
+                        LIMIT 1";
+            $stmtImage = $conn->prepare($sqlImage);
+            $stmtImage->execute([$vehicleTypeId, $section]);
+            $sectionData = $stmtImage->fetch(PDO::FETCH_ASSOC);
+            
+            // Construir la ruta completa de la imagen
+            // La imagen está en /public/assets/uploads/vehicle_sections/
+            $imagePath = '';
+            if (!empty($sectionData['image_path'])) {
+                $imagePath = '/public/assets/uploads/vehicle_sections/' . $sectionData['image_path'];
+            }
+            
+            // Obtener las piezas inspeccionadas con sus conceptos Y POSICIONES
+            // NOTA: La tabla usa pieza_id y concepto_id (en español), no piece_id y concept_id
+            // NOTA: La columna en inspection_concepts es 'name', no 'concept_name'
+            $sqlPieces = "SELECT 
+                            vp.piece_number,
+                            vp.piece_name,
+                            vp.position_x,
+                            vp.position_y,
+                            ic.name as concept_name
+                        FROM expertise_inspections ei
+                        INNER JOIN vehicle_pieces vp ON ei.pieza_id = vp.id
+                        INNER JOIN inspection_concepts ic ON ei.concepto_id = ic.id
+                        INNER JOIN vehicle_sections vs ON vp.section_id = vs.id
+                        WHERE ei.expertise_id = ? 
+                        AND ei.section = ?
+                        ORDER BY vp.piece_number ASC";
+            
+            $stmtPieces = $conn->prepare($sqlPieces);
+            $stmtPieces->execute([$expertiseId, $section]);
+            $pieces = $stmtPieces->fetchAll(PDO::FETCH_ASSOC);
+            
+            return [
+                'image' => $imagePath,
+                'pieces' => $pieces
+            ];
+            
+        } catch (Exception $e) {
+            return [
+                'image' => '',
+                'pieces' => []
+            ];
         }
     }
     

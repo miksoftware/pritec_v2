@@ -11,6 +11,7 @@
                 display: none !important;
             }
             @page {
+                size: legal;
                 margin: 1cm 0.8cm;
             }
             body {
@@ -29,10 +30,26 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         html {
             font-size: 13px;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        @media print {
+            html, body {
+                font-size: 12px;
+            }
+            body {
+                background-color: white;
+            }
         }
 
         :root {
@@ -42,7 +59,7 @@
 
         p {
             margin: 0;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .plate {
@@ -63,7 +80,8 @@
             background: var(--main-color);
             border-radius: 8px;
             text-wrap: nowrap;
-            font-size: 1.2rem;
+            font-size: 1rem;
+            
         }
 
         .sub-title {
@@ -82,7 +100,7 @@
         }
 
         .label {
-            min-width: 50%;
+            min-width: 40%;
             width: fit-content;
             padding: .2rem .5rem;
             align-self: center;
@@ -93,6 +111,7 @@
             padding: .2rem .5rem;
             border: 1px var(--main-color) solid;
             border-radius: 8px;
+            font-size: 10px;
         }
 
         .remarks {
@@ -104,21 +123,26 @@
         }
 
         .page {
-            min-height: 27cm;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             padding: 1rem;
-            margin-bottom: 2rem;
+            background: white;
         }
 
         @media screen {
             .page {
                 border: 1px solid #ddd;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                background: white;
-                max-width: 21cm;
-                margin: 1rem auto;
+                max-width: 26cm;
+                min-height: 33cm;
+                margin: 1rem auto 2rem auto;
+            }
+        }
+
+        @media print {
+            .page {
+                margin: 0;
+                padding: 0.5cm;
             }
         }
 
@@ -213,6 +237,21 @@
         }
 
         /* Estilos para la cabecera */
+        h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        h3 {
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
         .header-title {
             font-size: 1.3rem;
             font-weight: bold;
@@ -422,7 +461,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="me-4" style="width: 33%;">
+                <div class="me-2" style="width: 33%;">
                     <div class="plate"><?php echo $peritaje["placa"]; ?></div>
                     <div class="yellow-background sub-title">DATOS DEL SOLICITANTE</div>
                     <div class="d-flex flex-column gap-2">
@@ -452,7 +491,7 @@
                         </div>
                         <div class="d-flex gap-2">
                             <div class="yellow-background label">Correo</div>
-                            <div class="input">
+                            <div class="input" style="font-size: 10px;">
                                 <?php echo $peritaje["email"]; ?>
                             </div>
                         </div>
@@ -467,26 +506,57 @@
                         <div class="yellow-background sub-title w-100">
                             VEHÍCULO: <?php echo $peritaje["tipo_vehiculo"]; ?>
                         </div>
-                        <p>Indique con un círculo en que parte del vehículo tiene alguna condición.</p>
-                        <div class="yellow-background sub-title ms-4 mb-0">CARROCERÍA</div>
-                        <div class="d-flex gap-2 w-100" style="height: 200px">
-                            <img src="" class="w-50" style="object-fit: contain;">
-                            <div class="d-flex flex-column gap-2 w-50 h-100">
-                                <div class="d-flex gap-2">
-                                    <div class="yellow-background label text-center" style="width: 70%">Descripción pieza</div>
-                                    <div class="input text-center">Concepto</div>
+                        <p style="font-size: 11px; margin-bottom: 0.3rem;">Indique con un círculo en que parte del vehículo tiene alguna condición.</p>
+                        <div class="yellow-background sub-title ms-4 mb-0" style="margin: 0.3rem 0 0.3rem 1rem;">CARROCERÍA</div>
+                        <div class="d-flex gap-2 w-100" style="min-height: 180px;">
+                            <?php if (!empty($carroceria['image'])): ?>
+                                <div style="position: relative; ">
+                                    <img src="<?php echo $BASE_URL . $carroceria['image']; ?>" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                                    <?php if (!empty($carroceria['pieces'])): ?>
+                                        <?php foreach ($carroceria['pieces'] as $pieza): ?>
+                                            <?php if (!empty($pieza['position_x']) && !empty($pieza['position_y'])): ?>
+                                                <div style="position: absolute; left: <?php echo $pieza['position_x']; ?>px; top: <?php echo $pieza['position_y']; ?>px; transform: translate(-50%, -50%); width: 24px; height: 24px; background: #ff0000; border: 2px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                                    <?php echo htmlspecialchars($pieza['piece_number']); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </div>
-                                <?php foreach ($carroceria as $fila): ?>
-                                    <div class="d-flex gap-2">
-                                        <div class="yellow-background label" style="width: 70%">
-                                            <?php echo htmlspecialchars($fila["descripcion_pieza"]); ?>
+                            <?php else: ?>
+                                <div class="w-50" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; height: 180px; border: 1px dashed #ccc;">
+                                    <p style="color: #999;">Sin imagen</p>
+                                </div>
+                            <?php endif; ?>
+                            <div class="d-flex flex-column w-50" style="gap: 0.2rem; overflow: hidden;">
+                                <div class="d-flex" style="gap: 0.2rem;">
+                                    <div class="yellow-background text-center" style="width: 10%; padding: 0.2rem; font-size: 11px; font-weight: bold;">No.</div>
+                                    <div class="yellow-background text-center" style="width: 60%; padding: 0.2rem; font-size: 11px; font-weight: bold;">Descripción pieza</div>
+                                    <div class="yellow-background text-center" style="width: 30%; padding: 0.2rem; font-size: 11px; font-weight: bold;">Concepto</div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.2rem; max-height: 160px; overflow-y: auto;">
+                                    <?php if (!empty($carroceria['pieces'])): ?>
+                                        <?php foreach ($carroceria['pieces'] as $pieza): ?>
+                                            <div class="d-flex" style="gap: 0.2rem;">
+                                                <div class="input text-center" style="width: 10%; padding: 0.15rem 0.2rem; font-size: 10px; border: 1px solid var(--main-color); border-radius: 4px;">
+                                                    <?php echo htmlspecialchars($pieza["piece_number"]); ?>
+                                                </div>
+                                                <div class="input" style="width: 60%; padding: 0.15rem 0.3rem; font-size: 10px; border: 1px solid var(--main-color); border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <?php echo htmlspecialchars($pieza["piece_name"]); ?>
+                                                </div>
+                                                <div class="input text-center" style="width: 30%; padding: 0.15rem 0.2rem; font-size: 10px; border: 1px solid var(--main-color); border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <?php echo htmlspecialchars($pieza["concept_name"]); ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <div style="width: 100%; padding: 1rem; text-align: center; color: #999; font-size: 10px; border: 1px dashed #ccc; border-radius: 4px;">
+                                            No se registraron inspecciones
                                         </div>
-                                        <div class="input"><?php echo htmlspecialchars($fila["concepto"]); ?></div>
-                                    </div>
-                                <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
-                        <div class="remarks">
+                        <div class="remarks" style="margin-top: 0.5rem;">
                             OBSERVACIONES: <br/> <?php echo htmlspecialchars($peritaje["observaciones_inspeccion"]); ?>
                         </div>
                     </div>
@@ -500,28 +570,57 @@
                         <div class="yellow-background sub-title w-100">
                             VEHÍCULO: <?php echo $peritaje["tipo_vehiculo"]; ?>
                         </div>
-                        <p>Indique con un círculo en que parte del vehículo tiene alguna condición.</p>
-                        <div>
-                            <div class="yellow-background sub-title ms-4 mb-0">ESTRUCTURA</div>
-                            <div class="d-flex gap-2 w-100">
-                                <img src="" class="w-50" style="object-fit: contain; max-height: 200px">
-                                <div class="d-flex flex-column gap-2 w-50 h-100">
-                                    <div class="d-flex gap-2">
-                                        <div class="yellow-background label text-center" style="width: 70%">Descripción pieza</div>
-                                        <div class="input text-center">Concepto</div>
-                                    </div>
-                                    <?php foreach ($estructura as $fila): ?>
-                                        <div class="d-flex gap-2">
-                                            <div class="yellow-background label" style="width: 70%">
-                                                <?php echo htmlspecialchars($fila["descripcion_pieza"]); ?>
+                        <p style="font-size: 11px; margin-bottom: 0.3rem;">Indique con un círculo en que parte del vehículo tiene alguna condición.</p>
+                        <div class="yellow-background sub-title ms-4 mb-0" style="margin: 0.3rem 0 0.3rem 1rem;">ESTRUCTURA</div>
+                        <div class="d-flex gap-2 w-100" style="min-height: 180px;">
+                            <?php if (!empty($estructura['image'])): ?>
+                                <div style="position: relative; ">
+                                    <img src="<?php echo $BASE_URL . $estructura['image']; ?>" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                                    <?php if (!empty($estructura['pieces'])): ?>
+                                        <?php foreach ($estructura['pieces'] as $pieza): ?>
+                                            <?php if (!empty($pieza['position_x']) && !empty($pieza['position_y'])): ?>
+                                                <div style="position: absolute; left: <?php echo $pieza['position_x']; ?>px; top: <?php echo $pieza['position_y']; ?>px; transform: translate(-50%, -50%); width: 24px; height: 24px; background: #ff0000; border: 2px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                                    <?php echo htmlspecialchars($pieza['piece_number']); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="w-50" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; height: 180px; border: 1px dashed #ccc;">
+                                    <p style="color: #999;">Sin imagen</p>
+                                </div>
+                            <?php endif; ?>
+                            <div class="d-flex flex-column w-50" style="gap: 0.2rem; overflow: hidden;">
+                                <div class="d-flex" style="gap: 0.2rem;">
+                                    <div class="yellow-background text-center" style="width: 10%; padding: 0.2rem; font-size: 9px; font-weight: bold;">No.</div>
+                                    <div class="yellow-background text-center" style="width: 60%; padding: 0.2rem; font-size: 9px; font-weight: bold;">Descripción pieza</div>
+                                    <div class="yellow-background text-center" style="width: 30%; padding: 0.2rem; font-size: 9px; font-weight: bold;">Concepto</div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.2rem; max-height: 160px; overflow-y: auto;">
+                                    <?php if (!empty($estructura['pieces'])): ?>
+                                        <?php foreach ($estructura['pieces'] as $pieza): ?>
+                                            <div class="d-flex" style="gap: 0.2rem;">
+                                                <div class="input text-center" style="width: 10%; padding: 0.15rem 0.2rem; font-size: 8px; border: 1px solid var(--main-color); border-radius: 4px;">
+                                                    <?php echo htmlspecialchars($pieza["piece_number"]); ?>
+                                                </div>
+                                                <div class="input" style="width: 60%; padding: 0.15rem 0.3rem; font-size: 8px; border: 1px solid var(--main-color); border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <?php echo htmlspecialchars($pieza["piece_name"]); ?>
+                                                </div>
+                                                <div class="input text-center" style="width: 30%; padding: 0.15rem 0.2rem; font-size: 8px; border: 1px solid var(--main-color); border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <?php echo htmlspecialchars($pieza["concept_name"]); ?>
+                                                </div>
                                             </div>
-                                            <div class="input"><?php echo htmlspecialchars($fila["concepto"]); ?></div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <div style="width: 100%; padding: 1rem; text-align: center; color: #999; font-size: 10px; border: 1px dashed #ccc; border-radius: 4px;">
+                                            No se registraron inspecciones
                                         </div>
-                                    <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                        <div class="remarks">
+                        <div class="remarks" style="margin-top: 0.5rem;">
                             OBSERVACIONES: <br/> <?php echo htmlspecialchars($peritaje["observaciones_inspeccion"]); ?>
                         </div>
                     </div>
@@ -540,30 +639,57 @@
                         <div class="yellow-background sub-title w-100">
                             VEHÍCULO: <?php echo $peritaje["tipo_vehiculo"]; ?>
                         </div>
-                        <p>Indique con un círculo en que parte del vehículo tiene alguna condición.</p>
-                        <div>
-                            <div class="yellow-background sub-title mb-0">CHASIS</div>
-                            <div class="d-flex gap-2 w-100">
-                                <img src="" class="w-50" style="object-fit: contain; max-height: 200px">
-                                <div class="d-flex flex-column gap-2 w-50 h-100">
-                                    <div class="d-flex gap-2">
-                                        <div class="yellow-background label text-center" style="width: 70%">Descripción pieza</div>
-                                        <div class="input text-center">Concepto</div>
-                                    </div>
-                                    <?php foreach ($chasis as $fila): ?>
-                                        <div class="d-flex gap-2">
-                                            <div class="yellow-background label" style="width: 70%">
-                                                <?php echo htmlspecialchars($fila["descripcion_pieza"]); ?>
+                        <p style="font-size: 11px; margin-bottom: 0.3rem;">Indique con un círculo en que parte del vehículo tiene alguna condición.</p>
+                        <div class="yellow-background sub-title ms-4 mb-0" style="margin: 0.3rem 0 0.3rem 1rem;">CHASIS</div>
+                        <div class="d-flex gap-2 w-100" style="min-height: 180px;">
+                            <?php if (!empty($chasis['image'])): ?>
+                                <div class="w-50" style="position: relative; ">
+                                    <img src="<?php echo $BASE_URL . $chasis['image']; ?>" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                                    <?php if (!empty($chasis['pieces'])): ?>
+                                        <?php foreach ($chasis['pieces'] as $pieza): ?>
+                                            <?php if (!empty($pieza['position_x']) && !empty($pieza['position_y'])): ?>
+                                                <div style="position: absolute; left: <?php echo $pieza['position_x']; ?>px; top: <?php echo $pieza['position_y']; ?>px; transform: translate(-50%, -50%); width: 24px; height: 24px; background: #ff0000; border: 2px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                                    <?php echo htmlspecialchars($pieza['piece_number']); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="w-50" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; height: 180px; border: 1px dashed #ccc;">
+                                    <p style="color: #999;">Sin imagen</p>
+                                </div>
+                            <?php endif; ?>
+                            <div class="d-flex flex-column w-50" style="gap: 0.2rem; overflow: hidden;">
+                                <div class="d-flex" style="gap: 0.2rem;">
+                                    <div class="yellow-background text-center" style="width: 10%; padding: 0.2rem; font-size: 9px; font-weight: bold;">No.</div>
+                                    <div class="yellow-background text-center" style="width: 60%; padding: 0.2rem; font-size: 9px; font-weight: bold;">Descripción pieza</div>
+                                    <div class="yellow-background text-center" style="width: 30%; padding: 0.2rem; font-size: 9px; font-weight: bold;">Concepto</div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 0.2rem; max-height: 160px; overflow-y: auto;">
+                                    <?php if (!empty($chasis['pieces'])): ?>
+                                        <?php foreach ($chasis['pieces'] as $pieza): ?>
+                                            <div class="d-flex" style="gap: 0.2rem;">
+                                                <div class="input text-center" style="width: 10%; padding: 0.15rem 0.2rem; font-size: 8px; border: 1px solid var(--main-color); border-radius: 4px;">
+                                                    <?php echo htmlspecialchars($pieza["piece_number"]); ?>
+                                                </div>
+                                                <div class="input" style="width: 60%; padding: 0.15rem 0.3rem; font-size: 8px; border: 1px solid var(--main-color); border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <?php echo htmlspecialchars($pieza["piece_name"]); ?>
+                                                </div>
+                                                <div class="input text-center" style="width: 30%; padding: 0.15rem 0.2rem; font-size: 8px; border: 1px solid var(--main-color); border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <?php echo htmlspecialchars($pieza["concept_name"]); ?>
+                                                </div>
                                             </div>
-                                            <div class="input">
-                                                <?php echo htmlspecialchars($fila["concepto"]); ?>
-                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <div style="width: 100%; padding: 1rem; text-align: center; color: #999; font-size: 10px; border: 1px dashed #ccc; border-radius: 4px;">
+                                            No se registraron inspecciones
                                         </div>
-                                    <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                        <div class="remarks" style="height: fit-content">
+                        <div class="remarks" style="margin-top: 0.5rem; height: fit-content;">
                             OBSERVACIONES: <br/> <?php echo $peritaje["observaciones_estructura"]; ?>
                         </div>
                     </div>

@@ -82,8 +82,35 @@
             step2Form.classList.add('was-validated');
         });
         
-        // Cargar todos los tipos al iniciar
-        searchVehicleTypes('');
+        // Verificar si hay un tipo de vehículo guardado
+        if (typeof SAVED_VEHICLE_TYPE_ID !== 'undefined' && SAVED_VEHICLE_TYPE_ID) {
+            // Cargar tipo de vehículo guardado
+            loadSavedVehicleType();
+        } else {
+            // Cargar todos los tipos al iniciar
+            searchVehicleTypes('');
+        }
+    }
+    
+    /**
+     * Cargar tipo de vehículo guardado
+     */
+    function loadSavedVehicleType() {
+        const vehicleType = {
+            id: SAVED_VEHICLE_TYPE_ID,
+            name: SAVED_VEHICLE_TYPE_NAME || 'Tipo de Vehículo',
+            type: SAVED_VEHICLE_TYPE_TYPE || 'carro',
+            description: ''
+        };
+        
+        selectVehicleType(vehicleType);
+        
+        // Verificar si ya hay placa para habilitar el botón
+        const placaInput = document.getElementById('placa');
+        if (placaInput && placaInput.value.trim().length > 0) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('disabled');
+        }
     }
     
     /**
@@ -256,9 +283,15 @@
         searchInput.value = '';
         searchInput.focus();
         
-        // Limpiar formulario
-        document.getElementById('step2Form').reset();
-        document.getElementById('tipo_vehiculo_input').value = '';
+        // Limpiar solo los campos del formulario pero NO el tipo de vehículo
+        const formElements = document.getElementById('step2Form').elements;
+        for (let element of formElements) {
+            if (element.name !== 'tipo_vehiculo' && element.name !== '<?= CSRF_TOKEN_NAME ?>') {
+                if (element.type !== 'submit' && element.type !== 'button') {
+                    element.value = '';
+                }
+            }
+        }
     }
     
     /**

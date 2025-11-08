@@ -38,7 +38,10 @@ if ($view_mode) {
 ?>
 
 <?php if (!$view_mode): ?>
-    <?php renderExpertiseProgressIndicator(12); ?>
+    <?php 
+    $vehicleTypeForProgress = $_SESSION['expertise_step2']['tipo_vehiculo_type'] ?? 'carro';
+    renderExpertiseProgressIndicator(12, $vehicleTypeForProgress); 
+    ?>
 <?php endif; ?>
 
 <!-- Content Body -->
@@ -68,9 +71,14 @@ if ($view_mode) {
                 </div>
             <?php else: ?>
                 <!-- Alerta de éxito (modo creación) -->
+                <?php 
+                // Detectar tipo de vehículo temprano para el mensaje
+                $tempVehicleType = $_SESSION['expertise_step2']['tipo_vehiculo_type'] ?? 'carro';
+                $totalStepsMessage = ($tempVehicleType === 'moto') ? '11' : '12';
+                ?>
                 <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                     <h5 class="alert-heading"><i class="fas fa-check-circle me-2"></i>¡Todos los pasos completados!</h5>
-                    <p class="mb-0">Ha completado exitosamente todos los 11 pasos del peritaje. Revise el resumen a continuación y haga clic en "Guardar Peritaje" para finalizar.</p>
+                    <p class="mb-0">Ha completado exitosamente todos los <?= $totalStepsMessage ?> pasos del peritaje. Revise el resumen a continuación y haga clic en "Guardar Peritaje" para finalizar.</p>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php endif; ?>
@@ -88,6 +96,9 @@ if ($view_mode) {
                 $step5 = $_SESSION['expertise_step5'] ?? [];
                 $step6 = $_SESSION['expertise_step6'] ?? [];
                 $step7 = $_SESSION['expertise_step7'] ?? [];
+                
+                // Detectar tipo de vehículo para condicionar la visualización
+                $vehicleType = $step2['tipo_vehiculo_type'] ?? 'carro';
                 $step8 = $_SESSION['expertise_step8'] ?? [];
                 $step9 = $_SESSION['expertise_step9'] ?? [];
                 $step10 = $_SESSION['expertise_step10'] ?? [];
@@ -196,14 +207,20 @@ if ($view_mode) {
                     </div>
                 </div>
                 
-                <!-- Pasos 3, 4, 5: Inspecciones -->
+                <!-- Pasos 3, 4, 5: Inspecciones (o 4, 5 para motos) -->
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-primary text-white">
                         <i class="fas fa-clipboard-check me-2"></i>
+                        <?php if ($vehicleType === 'moto'): ?>
+                        <strong>Pasos 4, 5: Inspecciones (Estructura, Chasis)</strong>
+                        <?php else: ?>
                         <strong>Pasos 3, 4, 5: Inspecciones (Carrocería, Estructura, Chasis)</strong>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <div class="row">
+                            <?php if ($vehicleType !== 'moto'): ?>
+                            <!-- Carrocería solo para carros -->
                             <div class="col-md-4 text-center">
                                 <h5 class="text-primary">
                                     <i class="fas fa-car me-2"></i>Carrocería
@@ -222,7 +239,9 @@ if ($view_mode) {
                                 </a>
                                 <?php endif; ?>
                             </div>
-                            <div class="col-md-4 text-center">
+                            <?php endif; ?>
+                            
+                            <div class="<?= $vehicleType === 'moto' ? 'col-md-6' : 'col-md-4' ?> text-center">
                                 <h5 class="text-primary">
                                     <i class="fas fa-building me-2"></i>Estructura
                                 </h5>
@@ -240,7 +259,7 @@ if ($view_mode) {
                                 </a>
                                 <?php endif; ?>
                             </div>
-                            <div class="col-md-4 text-center">
+                            <div class="<?= $vehicleType === 'moto' ? 'col-md-6' : 'col-md-4' ?> text-center">
                                 <h5 class="text-primary">
                                     <i class="fas fa-cogs me-2"></i>Chasis
                                 </h5>
@@ -405,13 +424,21 @@ if ($view_mode) {
                         <?php if (!empty($step11['fotos'])): ?>
                         <div class="row g-2">
                             <?php foreach (array_slice($step11['fotos'], 0, 8) as $foto): ?>
+                            <?php 
+                                // Asegurar que la ruta sea correcta (manejar rutas antiguas y nuevas)
+                                $rutaFoto = $foto['ruta'];
+                                // Si la ruta NO comienza con 'public/', agregarla
+                                if (strpos($rutaFoto, 'public/') !== 0 && strpos($rutaFoto, 'uploads/') === 0) {
+                                    $rutaFoto = 'public/' . $rutaFoto;
+                                }
+                            ?>
                             <div class="col-md-3 col-sm-4 col-6">
                                 <div class="position-relative">
-                                    <img src="<?= APP_URL . $foto['ruta'] ?>" 
+                                    <img src="<?= APP_URL . $rutaFoto ?>" 
                                          class="img-thumbnail" 
                                          alt="<?= htmlspecialchars($foto['nombre_original']) ?>"
                                          style="height: 120px; width: 100%; object-fit: cover; cursor: pointer;"
-                                         onclick="window.open('<?= APP_URL . $foto['ruta'] ?>', '_blank')">
+                                         onclick="window.open('<?= APP_URL . $rutaFoto ?>', '_blank')">
                                     <small class="d-block text-center text-truncate mt-1" style="font-size: 0.7rem;">
                                         <?= htmlspecialchars($foto['nombre_original']) ?>
                                     </small>

@@ -141,91 +141,106 @@ renderExpertiseProgressIndicator(2);
                                 <!-- Placa -->
                                 <div class="col-md-4">
                                     <label class="form-label">Placa <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="placa" id="placa" required>
+                                    <input type="text" class="form-control" name="placa" id="placa" 
+                                           value="<?= htmlspecialchars($expertise['placa'] ?? '') ?>" required>
                                 </div>
                                 
                                 <!-- Clase -->
                                 <div class="col-md-4">
                                     <label class="form-label">Clase</label>
-                                    <input type="text" class="form-control" name="clase">
+                                    <input type="text" class="form-control" name="clase" 
+                                           value="<?= htmlspecialchars($expertise['clase_vehiculo'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Marca -->
                                 <div class="col-md-4">
                                     <label class="form-label">Marca</label>
-                                    <input type="text" class="form-control" name="marca">
+                                    <input type="text" class="form-control" name="marca" 
+                                           value="<?= htmlspecialchars($expertise['marca'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Línea -->
                                 <div class="col-md-4">
                                     <label class="form-label">Línea</label>
-                                    <input type="text" class="form-control" name="linea">
+                                    <input type="text" class="form-control" name="linea" 
+                                           value="<?= htmlspecialchars($expertise['linea'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Cilindraje -->
                                 <div class="col-md-4">
                                     <label class="form-label">Cilindraje</label>
-                                    <input type="text" class="form-control" name="cilindraje">
+                                    <input type="text" class="form-control" name="cilindraje" 
+                                           value="<?= htmlspecialchars($expertise['cilindrada'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Servicio -->
                                 <div class="col-md-4">
                                     <label class="form-label">Servicio</label>
-                                    <input type="text" class="form-control" name="servicio">
+                                    <input type="text" class="form-control" name="servicio" 
+                                           value="<?= htmlspecialchars($expertise['servicio'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Modelo -->
                                 <div class="col-md-4">
                                     <label class="form-label">Modelo</label>
-                                    <input type="text" class="form-control" name="modelo">
+                                    <input type="text" class="form-control" name="modelo" 
+                                           value="<?= htmlspecialchars($expertise['modelo'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Color -->
                                 <div class="col-md-4">
                                     <label class="form-label">Color</label>
-                                    <input type="text" class="form-control" name="color">
+                                    <input type="text" class="form-control" name="color" 
+                                           value="<?= htmlspecialchars($expertise['color'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- No de Chasis -->
                                 <div class="col-md-4">
                                     <label class="form-label">No de Chasis</label>
-                                    <input type="text" class="form-control" name="no_chasis">
+                                    <input type="text" class="form-control" name="no_chasis" 
+                                           value="<?= htmlspecialchars($expertise['numero_chasis'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- No de Motor -->
                                 <div class="col-md-4">
                                     <label class="form-label">No de Motor</label>
-                                    <input type="text" class="form-control" name="no_motor">
+                                    <input type="text" class="form-control" name="no_motor" 
+                                           value="<?= htmlspecialchars($expertise['numero_motor'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- No de Serie -->
                                 <div class="col-md-4">
                                     <label class="form-label">No de Serie</label>
-                                    <input type="text" class="form-control" name="no_serie">
+                                    <input type="text" class="form-control" name="no_serie" 
+                                           value="<?= htmlspecialchars($expertise['numero_serie'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Tipo de Carrocería -->
                                 <div class="col-md-4">
                                     <label class="form-label">Tipo de Carrocería</label>
-                                    <input type="text" class="form-control" name="tipo_carroceria">
+                                    <input type="text" class="form-control" name="tipo_carroceria" 
+                                           value="<?= htmlspecialchars($expertise['tipo_carroceria'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Organismo de Tránsito -->
                                 <div class="col-md-4">
                                     <label class="form-label">Organismo de Tránsito</label>
-                                    <input type="text" class="form-control" name="organismo_transito">
+                                    <input type="text" class="form-control" name="organismo_transito" 
+                                           value="<?= htmlspecialchars($expertise['organismo_transito'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Kilometraje -->
                                 <div class="col-md-4">
                                     <label class="form-label">Kilometraje</label>
-                                    <input type="number" class="form-control" name="kilometraje" id="kilometraje">
+                                    <input type="number" class="form-control" name="kilometraje" id="kilometraje" 
+                                           value="<?= htmlspecialchars($expertise['kilometraje'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Código Fasecolda -->
                                 <div class="col-md-4">
                                     <label class="form-label">Código Fasecolda</label>
-                                    <input type="text" class="form-control" name="codigo_fasecolda" id="codigo_fasecolda">
+                                    <input type="text" class="form-control" name="codigo_fasecolda" id="codigo_fasecolda" 
+                                           value="<?= htmlspecialchars($expertise['codigo_fasecolda'] ?? '') ?>">
                                 </div>
                                 
                                 <!-- Valor Fasecolda -->
@@ -233,7 +248,8 @@ renderExpertiseProgressIndicator(2);
                                     <label class="form-label">Valor Fasecolda</label>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" name="valor_fasecolda" id="valor_fasecolda">
+                                        <input type="number" class="form-control" name="valor_fasecolda" id="valor_fasecolda" 
+                                               value="<?= htmlspecialchars($expertise['valor_fasecolda'] ?? '') ?>">
                                     </div>
                                 </div>
                                 
@@ -242,7 +258,8 @@ renderExpertiseProgressIndicator(2);
                                     <label class="form-label">Valor Sugerido</label>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" name="valor_sugerido" id="valor_sugerido">
+                                        <input type="number" class="form-control" name="valor_sugerido" id="valor_sugerido" 
+                                               value="<?= htmlspecialchars($expertise['valor_sugerido'] ?? '') ?>">
                                     </div>
                                 </div>
                                 
@@ -251,7 +268,8 @@ renderExpertiseProgressIndicator(2);
                                     <label class="form-label">Valor Accesorios</label>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" name="valor_accesorios" id="valor_accesorios">
+                                        <input type="number" class="form-control" name="valor_accesorios" id="valor_accesorios" 
+                                               value="<?= htmlspecialchars($expertise['valor_accesorios'] ?? '') ?>">
                                     </div>
                                 </div>
                             </div>
@@ -268,6 +286,12 @@ renderExpertiseProgressIndicator(2);
 </div>
 
 <!-- Script para búsqueda de tipos de vehículo -->
+<script>
+    // Pasar datos guardados a JavaScript
+    const SAVED_VEHICLE_TYPE_ID = <?= !empty($expertise['tipo_vehiculo']) ? intval($expertise['tipo_vehiculo']) : 'null' ?>;
+    const SAVED_VEHICLE_TYPE_NAME = <?= !empty($expertise['tipo_vehiculo_nombre']) ? '"' . htmlspecialchars($expertise['tipo_vehiculo_nombre'], ENT_QUOTES) . '"' : 'null' ?>;
+    const SAVED_VEHICLE_TYPE_TYPE = <?= !empty($expertise['tipo_vehiculo_type']) ? '"' . htmlspecialchars($expertise['tipo_vehiculo_type'], ENT_QUOTES) . '"' : 'null' ?>;
+</script>
 <script src="<?= ASSETS_URL ?>js/expertise-step2-new.js"></script>
 
 <?php 
