@@ -2039,10 +2039,26 @@ class ExpertiseController extends Controller {
                 throw new Exception('No tienes permiso para ver este peritaje');
             }
             
+            // Decodificar JSON de motor_sistemas_data
+            $motorSistemasData = [];
+            if (!empty($expertise['motor_sistemas_data'])) {
+                $motorSistemasData = json_decode($expertise['motor_sistemas_data'], true) ?? [];
+            }
+            
+            // Decodificar JSON de fugas_niveles_data
+            $fugasNivelesData = [];
+            if (!empty($expertise['fugas_niveles_data'])) {
+                $fugasNivelesData = json_decode($expertise['fugas_niveles_data'], true) ?? [];
+            }
+            
+            // Obtener fotos de la expertise
+            $photos = $this->expertiseModel->getPhotos($id);
+            
             // Preparar datos para la vista
             $data = [
                 'BASE_URL' => APP_URL,
-                'peritaje' => [
+                'photos' => $photos,
+                'peritaje' => array_merge([
                     'fecha' => $expertise['service_date'] ?? date('Y-m-d'),
                     'no_servicio' => $expertise['service_number'] ?? 'N/A',
                     'servicio_para' => $expertise['service_for'] ?? 'N/A',
@@ -2071,14 +2087,91 @@ class ExpertiseController extends Controller {
                     'direccion' => $expertise['cliente_direccion'] ?? 'N/A',
                     'email' => $expertise['cliente_email'] ?? 'N/A',
                     'tipo_vehiculo' => $expertise['tipo_vehiculo_nombre'] ?? 'VEHÍCULO',
+                    'type' => $expertise['tipo_vehiculo_type'] ?? '',
+                    'tipo_vehiculo_type' => $expertise['tipo_vehiculo_type'] ?? 'carro',
                     'observaciones_inspeccion' => $expertise['observaciones_inspeccion'] ?? 'Sin observaciones',
                     'observaciones_estructura' => $expertise['observaciones_estructura'] ?? 'Sin observaciones',
-                    'prueba_bateria' => $expertise['prueba_bateria'] ?? 'N/A',
+                    'observaciones_llantas' => $expertise['observaciones_llantas'] ?? 'Sin observaciones',
+                    'observaciones_amortiguadores' => $expertise['observaciones_amortiguadores'] ?? 'Sin observaciones',
+                    'llanta_anterior_izquierda' => $expertise['llanta_anterior_izquierda'] ?? 0,
+                    'llanta_anterior_derecha' => $expertise['llanta_anterior_derecha'] ?? 0,
+                    'llanta_posterior_izquierda' => $expertise['llanta_posterior_izquierda'] ?? 0,
+                    'llanta_posterior_derecha' => $expertise['llanta_posterior_derecha'] ?? 0,
+                    'amortiguador_anterior_izquierdo' => $expertise['amortiguador_anterior_izquierdo'] ?? 0,
+                    'amortiguador_anterior_derecho' => $expertise['amortiguador_anterior_derecho'] ?? 0,
+                    'amortiguador_posterior_izquierdo' => $expertise['amortiguador_posterior_izquierdo'] ?? 0,
+                    'amortiguador_posterior_derecho' => $expertise['amortiguador_posterior_derecho'] ?? 0,
+                    'prueba_bateria' => $expertise['prueba_bateria'] ?? 0,
+                    'prueba_arranque' => $expertise['prueba_arranque'] ?? 0,
+                    'carga_bateria' => $expertise['carga_bateria'] ?? 0,
+                    'observaciones_bateria' => $expertise['observaciones_bateria'] ?? 'Sin observaciones',
                     'prueba_escaner' => $expertise['prueba_escaner'] ?? 'Sin datos',
-                ],
+                ], $motorSistemasData, $fugasNivelesData), // Merge JSON data into peritaje array
                 'carroceria' => $this->getInspectionDataWithImage($id, $expertise['tipo_vehiculo'], 'carroceria'),
                 'estructura' => $this->getInspectionDataWithImage($id, $expertise['tipo_vehiculo'], 'estructura'),
                 'chasis' => $this->getInspectionDataWithImage($id, $expertise['tipo_vehiculo'], 'chasis'),
+                'campos_tren_motriz' => [
+                    'estado_punta_eje' => 'Punta eje',
+                    'estado_discos_freno' => 'Discos freno',
+                    'estado_pastilla_freno' => 'Pastilla freno',
+                    'estado_axiales' => 'Axiales',
+                    'estado_terminales' => 'Terminales',
+                    'estado_rotulas' => 'Rótulas',
+                    'estado_chapas' => 'Chapas',
+                    'estado_caja_direccion' => 'Caja dirección',
+                    'estado_rodamientos' => 'Rodamientos',
+                    'estado_cardan' => 'Cardán',
+                    'estado_crucetas' => 'Crucetas',
+                ],
+                'campos_liquidos' => [
+                    'viscosidad_aceite_motor' => 'Viscosidad aceite motor',
+                    'nivel_refrigerante_motor' => 'Nivel refrigerante motor',
+                    'nivel_liquido_frenos' => 'Nivel líquido de frenos',
+                    'nivel_agua_limpiavidrios' => 'Nivel agua limpiavidrios',
+                    'nivel_aceite_direccion_hidraulica' => 'Nivel aceite dirección hidráulica',
+                    'nivel_liquido_embrague' => 'Nivel líquido embrague',
+                    'nivel_aceite_motor' => 'Nivel aceite motor',
+                ],
+                'campos_motor' => [
+                    'estado_arranque' => 'Arranque',
+                    'estado_radiador' => 'Radiador',
+                    'estado_carter_motor' => 'Carter motor',
+                    'estado_carter_caja' => 'Carter caja',
+                    'estado_caja_velocidades' => 'Caja de velocidades',
+                    'estado_soporte_caja' => 'Soporte caja',
+                    'estado_soporte_motor' => 'Estado soporte motor',
+                    'estado_mangueras_radiador' => 'Estado mangueras radiador',
+                    'estado_correas' => 'Estado correas',
+                    'tension_correas' => 'Tensión correas',
+                    'estado_filtro_aire' => 'Estado filtro de aire',
+                    'estado_externo_bateria' => 'Estado externo baterías',
+                ],
+                'campos_interior' => [
+                    'estado_calefaccion' => 'Calefacción',
+                    'estado_aire_acondicionado' => 'Aire acondicionado',
+                    'estado_cinturones' => 'Cinturones',
+                    'estado_tapiceria_asientos' => 'Tapicería asientos',
+                    'estado_tapiceria_techo' => 'Tapicería Techo',
+                    'estado_millaret' => 'Millaret',
+                    'estado_alfombra' => 'Alfombra',
+                    'estado_chapas' => 'Chapas',
+                ],
+                'campos_fugas' => [
+                    'fuga_aceite_motor' => 'Fuga aceite motor',
+                    'fuga_aceite_caja_velocidades' => 'Fuga aceite caja de velocidades',
+                    'fuga_aceite_caja_transmision' => 'Fuga aceite caja de transmisión',
+                    'fuga_liquido_frenos' => 'Fuga líquido de frenos',
+                    'fuga_aceite_direccion_hidraulica' => 'Fuga aceite dirección hidráulica',
+                    'fuga_liquido_bomba_embrague' => 'Fuga líquido bomba embrague',
+                    'fuga_tanque_combustible' => 'Fuga tanque de combustible',
+                ],
+                'campos_estado_componentes' => [
+                    'estado_tanque_silenciador' => 'Estado tanque silenciador',
+                    'estado_tubo_exhosto' => 'Estado tubo exhosto',
+                    'estado_tanque_catalizador_gases' => 'Estado tanque catalizador de gases',
+                    'estado_guardapolvo_caja_direccion' => 'Estado guardapolvo caja dirección',
+                    'estado_tuberia_frenos' => 'Estado tubería frenos',
+                ],
             ];
             
             // Cargar vista HTML (el usuario puede imprimir a PDF desde el navegador)
