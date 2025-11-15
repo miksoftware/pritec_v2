@@ -1,0 +1,10 @@
+# Permitir acceso a todas las imágenes en este directorio
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+# Para versiones antiguas de Apache
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>

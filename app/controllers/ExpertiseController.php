@@ -1460,18 +1460,28 @@ class ExpertiseController extends Controller {
             
             $fotos_guardadas = [];
             
-            // Crear directorio para fotos si no existe (usar ruta accesible desde web en public/)
-            $upload_dir = __DIR__ . '/../../public/uploads/expertise/';
+            // Crear directorio para fotos en public/assets/expertises/
+            $upload_dir = __DIR__ . '/../../public/assets/expertises/';
             
             // Normalizar ruta para Windows
             $upload_dir = str_replace('\\', '/', $upload_dir);
-            $upload_dir = realpath(dirname($upload_dir)) . '/' . basename($upload_dir);
             
-            if (!is_dir($upload_dir)) {
+            // Si el directorio no existe, crearlo
+            if (!file_exists($upload_dir)) {
                 if (!mkdir($upload_dir, 0755, true)) {
                     throw new Exception('No se pudo crear el directorio de fotografías: ' . $upload_dir);
                 }
             }
+            
+            // Convertir a ruta absoluta
+            $upload_dir = realpath($upload_dir);
+            
+            if (!$upload_dir) {
+                throw new Exception('No se pudo obtener la ruta absoluta del directorio de fotografías');
+            }
+            
+            // Asegurar que termine con /
+            $upload_dir = rtrim(str_replace('\\', '/', $upload_dir), '/') . '/';
             
             // Verificar que el directorio sea escribible
             if (!is_writable($upload_dir)) {
@@ -1514,7 +1524,7 @@ class ExpertiseController extends Controller {
                     $fotos_guardadas[] = [
                         'nombre_original' => $file_name,
                         'nombre_guardado' => $nuevo_nombre,
-                        'ruta' => 'public/uploads/expertise/' . $nuevo_nombre,
+                        'ruta' => 'public/assets/expertises/' . $nuevo_nombre,
                         'size' => $file_size,
                         'extension' => $file_ext
                     ];

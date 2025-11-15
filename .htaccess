@@ -12,9 +12,9 @@ RewriteEngine On
 # Bloquear acceso a directorios del sistema
 RewriteRule ^(app|config|database)/ - [F,L]
 
-# Alternativa dentro del .htaccess si no puedes modificar httpd.conf:
+# Permitir acceso directo a archivos estáticos en public/
 <IfModule mod_authz_core.c>
-    <FilesMatch "\.(png|jpg|jpeg|gif|webp|pdf|svg)$">
+    <FilesMatch "\.(png|jpg|jpeg|gif|webp|pdf|svg|css|js|ico|woff|woff2|ttf|eot)$">
         Require all granted
     </FilesMatch>
 </IfModule>

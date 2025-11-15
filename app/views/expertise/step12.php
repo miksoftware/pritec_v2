@@ -425,11 +425,15 @@ if ($view_mode) {
                         <div class="row g-2">
                             <?php foreach (array_slice($step11['fotos'], 0, 8) as $foto): ?>
                             <?php 
-                                // Asegurar que la ruta sea correcta (manejar rutas antiguas y nuevas)
+                                // La ruta viene de la BD como 'public/assets/expertises/archivo.png'
+                                // Obtener solo el nombre del archivo
                                 $rutaFoto = $foto['ruta'];
-                                // Si la ruta NO comienza con 'public/', agregarla
-                                if (strpos($rutaFoto, 'public/') !== 0 && strpos($rutaFoto, 'uploads/') === 0) {
-                                    $rutaFoto = 'public/' . $rutaFoto;
+                                
+                                // Compatibilidad con rutas antiguas
+                                if (strpos($rutaFoto, 'uploads/expertise/') !== false) {
+                                    // Ruta antigua: uploads/expertise/archivo.png
+                                    $nombreArchivo = basename($rutaFoto);
+                                    $rutaFoto = 'public/assets/expertises/' . $nombreArchivo;
                                 }
                             ?>
                             <div class="col-md-3 col-sm-4 col-6">
