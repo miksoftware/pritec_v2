@@ -2036,17 +2036,37 @@ class ExpertiseController extends Controller {
      * @param int $id ID del expertise
      */
     public function generatePDF($id) {
+        // DEBUG TEMPORAL - Agregar ?debug=1 a la URL para ver errores
+        $debugMode = isset($_GET['debug']) && $_GET['debug'] == '1';
+        
         try {
+            // Validar ID
+            if (empty($id) || !is_numeric($id)) {
+                throw new Exception('ID de peritaje inválido');
+            }
+            
+            if ($debugMode) {
+                echo "<pre>DEBUG: ID recibido = $id\n";
+                echo "SESSION user_id = " . ($_SESSION['user_id'] ?? 'NO DEFINIDO') . "\n";
+                echo "SESSION role = " . ($_SESSION['role'] ?? 'NO DEFINIDO') . "\n</pre>";
+            }
+            
             // Obtener datos completos del peritaje
             $expertise = $this->expertiseModel->getByIdWithRelations($id);
             
             if (!$expertise) {
-                throw new Exception('Peritaje no encontrado');
+                throw new Exception('Peritaje no encontrado (ID: ' . $id . ')');
+            }
+            
+            if ($debugMode) {
+                echo "<pre>DEBUG: Expertise encontrado\n";
+                echo "expertise user_id = " . ($expertise['user_id'] ?? 'NULL') . "\n";
+                echo "Comparación: " . $expertise['user_id'] . " != " . $_SESSION['user_id'] . " = " . ($expertise['user_id'] != $_SESSION['user_id'] ? 'true' : 'false') . "\n</pre>";
             }
             
             // Verificar que el usuario tenga acceso
-            if ($expertise['user_id'] != $_SESSION['user_id'] && $_SESSION['role'] != 'admin') {
-                throw new Exception('No tienes permiso para ver este peritaje');
+            if ($expertise['user_id'] != $_SESSION['user_id'] && ($_SESSION['role'] ?? '') != 'admin') {
+                throw new Exception('No tienes permiso para ver este peritaje (user_id: ' . $expertise['user_id'] . ' vs session: ' . ($_SESSION['user_id'] ?? 'none') . ')');
             }
             
             // Decodificar JSON de motor_sistemas_data
@@ -2188,6 +2208,21 @@ class ExpertiseController extends Controller {
             $this->view('pdf_expertise', $data);
             
         } catch (Exception $e) {
+            // Log del error para debugging
+            error_log("Error en generatePDF (ID: $id): " . $e->getMessage() . " - Trace: " . $e->getTraceAsString());
+            
+            // Si está en modo debug, mostrar el error en pantalla
+            if (isset($_GET['debug']) && $_GET['debug'] == '1') {
+                echo "<pre style='background:#ffcccc; padding:20px; margin:20px;'>";
+                echo "<h2>ERROR EN PDF</h2>";
+                echo "Mensaje: " . htmlspecialchars($e->getMessage()) . "\n\n";
+                echo "Archivo: " . $e->getFile() . "\n";
+                echo "Línea: " . $e->getLine() . "\n\n";
+                echo "Trace:\n" . htmlspecialchars($e->getTraceAsString());
+                echo "</pre>";
+                exit;
+            }
+            
             $_SESSION['error'] = 'Error al generar PDF: ' . $e->getMessage();
             $this->redirect('expertise');
         }

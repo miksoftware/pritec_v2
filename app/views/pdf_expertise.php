@@ -7,43 +7,61 @@
  */
 
 // Funciones helper para determinar estados según porcentaje
-function obtenerEstadoPorPorcentaje($porcentaje) {
-    $porcentaje = intval($porcentaje);
-    if ($porcentaje <= 24) return 'Peligroso';
-    if ($porcentaje <= 49) return 'Precaución';
-    if ($porcentaje <= 74) return 'Seguro';
-    if ($porcentaje <= 100) return 'Nuevas';
-    return 'N/A';
+if (!function_exists('obtenerEstadoPorPorcentaje')) {
+    function obtenerEstadoPorPorcentaje($porcentaje) {
+        $porcentaje = intval($porcentaje);
+        if ($porcentaje <= 24) return 'Peligroso';
+        if ($porcentaje <= 49) return 'Precaución';
+        if ($porcentaje <= 74) return 'Seguro';
+        if ($porcentaje <= 100) return 'Nuevas';
+        return 'N/A';
+    }
 }
 
-function obtenerClasePorPorcentaje($porcentaje) {
-    $porcentaje = intval($porcentaje);
-    if ($porcentaje <= 24) return 'estado-peligroso';
-    if ($porcentaje <= 49) return 'estado-precaucion';
-    if ($porcentaje <= 74) return 'estado-seguro';
-    if ($porcentaje <= 100) return 'estado-nuevas';
-    return '';
+if (!function_exists('obtenerClasePorPorcentaje')) {
+    function obtenerClasePorPorcentaje($porcentaje) {
+        $porcentaje = intval($porcentaje);
+        if ($porcentaje <= 24) return 'estado-peligroso';
+        if ($porcentaje <= 49) return 'estado-precaucion';
+        if ($porcentaje <= 74) return 'estado-seguro';
+        if ($porcentaje <= 100) return 'estado-nuevas';
+        return '';
+    }
 }
 
-function obtenerEstadoBateriaPorPorcentaje($porcentaje) {
-    $porcentaje = intval($porcentaje);
-    if ($porcentaje <= 24) return 'Crítico';
-    if ($porcentaje <= 49) return 'Bajo';
-    if ($porcentaje <= 74) return 'Bueno';
-    if ($porcentaje <= 100) return 'Excelente';
-    return 'N/A';
+if (!function_exists('obtenerEstadoBateriaPorPorcentaje')) {
+    function obtenerEstadoBateriaPorPorcentaje($porcentaje) {
+        $porcentaje = intval($porcentaje);
+        if ($porcentaje <= 24) return 'Crítico';
+        if ($porcentaje <= 49) return 'Bajo';
+        if ($porcentaje <= 74) return 'Bueno';
+        if ($porcentaje <= 100) return 'Excelente';
+        return 'N/A';
+    }
 }
 
 // Función para renderizar el footer con número de página
-function renderFooter($pageNumber) {
-    return '<div class="footer">
-        <span class="footer-text">LA MEJOR FORMA DE COMPRAR UN CARRO USADO</span>
-        <span class="footer-page">Página ' . $pageNumber . '</span>
-    </div>';
+if (!function_exists('renderFooter')) {
+    function renderFooter($pageNumber) {
+        return '<div class="footer">
+            <span class="footer-text">LA MEJOR FORMA DE COMPRAR UN CARRO USADO</span>
+            <span class="footer-page">Página ' . $pageNumber . '</span>
+        </div>';
+    }
+}
+
+// Verificar que los datos necesarios existan
+if (!isset($peritaje) || !is_array($peritaje)) {
+    die('Error: Datos del peritaje no disponibles');
 }
 
 // Determinar si es carro o moto
 $esCarro = (isset($peritaje['type']) && $peritaje['type'] === 'carro');
+
+// Asegurar que BASE_URL esté definida
+if (!isset($BASE_URL)) {
+    $BASE_URL = defined('APP_URL') ? APP_URL : '/';
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">

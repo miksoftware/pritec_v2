@@ -3,9 +3,19 @@
 class Router {
     private $routes = [];
     private $currentRoute;
+    private $basePath;
     
     public function __construct() {
+        $this->basePath = $this->detectBasePath();
         $this->currentRoute = $this->getCurrentRoute();
+    }
+    
+    /**
+     * Detectar automáticamente el path base de la aplicación
+     */
+    private function detectBasePath() {
+        $scriptPath = dirname($_SERVER['SCRIPT_NAME']);
+        return ($scriptPath === '/' || $scriptPath === '\\') ? '' : $scriptPath;
     }
     
     private function getCurrentRoute() {
@@ -13,9 +23,8 @@ class Router {
         $path = parse_url($uri, PHP_URL_PATH);
         
         // Remover el directorio base si existe
-        $basePath = '/pritec_v2';
-        if (strpos($path, $basePath) === 0) {
-            $path = substr($path, strlen($basePath));
+        if (!empty($this->basePath) && strpos($path, $this->basePath) === 0) {
+            $path = substr($path, strlen($this->basePath));
         }
         
         return $path ?: '/';
@@ -38,10 +47,6 @@ class Router {
     }
     
     public function dispatch() {
-        // Debug temporal - remover después
-        error_log("Current route: " . $this->currentRoute);
-        error_log("Registered routes: " . print_r(array_keys($this->routes), true));
-        
         // Buscar ruta exacta
         if (isset($this->routes[$this->currentRoute])) {
             return $this->executeCallback($this->routes[$this->currentRoute]);
