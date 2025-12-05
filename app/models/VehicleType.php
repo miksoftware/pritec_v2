@@ -272,4 +272,58 @@ class VehicleType extends Model {
             return 0;
         }
     }
+    
+    /**
+     * Obtener estadísticas completas de tipos de vehículos
+     */
+    public function getStatistics() {
+        try {
+            $stats = [
+                'total' => 0,
+                'activos' => 0,
+                'inactivos' => 0,
+                'carros' => 0,
+                'motos' => 0
+            ];
+            
+            // Total
+            $sql = "SELECT COUNT(*) as total FROM {$this->table}";
+            $stmt = $this->db->query($sql);
+            $result = $stmt->fetch();
+            $stats['total'] = (int)$result['total'];
+            
+            // Activos
+            $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = 'active'";
+            $stmt = $this->db->query($sql);
+            $result = $stmt->fetch();
+            $stats['activos'] = (int)$result['total'];
+            
+            // Inactivos
+            $stats['inactivos'] = $stats['total'] - $stats['activos'];
+            
+            // Carros
+            $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE type = 'carro'";
+            $stmt = $this->db->query($sql);
+            $result = $stmt->fetch();
+            $stats['carros'] = (int)$result['total'];
+            
+            // Motos
+            $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE type = 'moto'";
+            $stmt = $this->db->query($sql);
+            $result = $stmt->fetch();
+            $stats['motos'] = (int)$result['total'];
+            
+            return $stats;
+            
+        } catch (Exception $e) {
+            error_log("Error getting vehicle type statistics: " . $e->getMessage());
+            return [
+                'total' => 0,
+                'activos' => 0,
+                'inactivos' => 0,
+                'carros' => 0,
+                'motos' => 0
+            ];
+        }
+    }
 }

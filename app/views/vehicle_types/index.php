@@ -15,10 +15,28 @@ renderIndexView([
     'show_stats' => true,
     'stats' => [
         [
-            'title' => 'Total Tipos',
-            'value' => $totalRecords ?? 0,
+            'title' => 'Carros',
+            'value' => $statistics['carros'] ?? 0,
             'icon' => 'fas fa-car',
-            'color' => 'primary'
+            'color' => 'info'
+        ],
+        [
+            'title' => 'Motos',
+            'value' => $statistics['motos'] ?? 0,
+            'icon' => 'fas fa-motorcycle',
+            'color' => 'warning'
+        ],
+        [
+            'title' => 'Activos',
+            'value' => $statistics['activos'] ?? 0,
+            'icon' => 'fas fa-check-circle',
+            'color' => 'success'
+        ],
+        [
+            'title' => 'Inactivos',
+            'value' => $statistics['inactivos'] ?? 0,
+            'icon' => 'fas fa-times-circle',
+            'color' => 'danger'
         ]
     ],
     'show_filters' => true,

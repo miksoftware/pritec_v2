@@ -1,623 +1,79 @@
 <?php
-// Funciones helper para llantas y amortiguadores
-function obtenerEstadoPorPorcentaje($porcentaje)
-{
+/**
+ * Vista PDF de Peritaje Completo - Pritec v2.0
+ * 
+ * Esta vista genera el documento PDF/imprimible del peritaje vehicular.
+ * Incluye todas las secciones de inspección, fotografías y firmas.
+ */
+
+// Funciones helper para determinar estados según porcentaje
+function obtenerEstadoPorPorcentaje($porcentaje) {
     $porcentaje = intval($porcentaje);
-    if ($porcentaje >= 0 && $porcentaje <= 24) {
-        return 'Peligroso';
-    } elseif ($porcentaje >= 25 && $porcentaje <= 49) {
-        return 'Precaución';
-    } elseif ($porcentaje >= 50 && $porcentaje <= 74) {
-        return 'Seguro';
-    } elseif ($porcentaje >= 75 && $porcentaje <= 100) {
-        return 'Nuevas';
-    }
+    if ($porcentaje <= 24) return 'Peligroso';
+    if ($porcentaje <= 49) return 'Precaución';
+    if ($porcentaje <= 74) return 'Seguro';
+    if ($porcentaje <= 100) return 'Nuevas';
     return 'N/A';
 }
 
-function obtenerClasePorPorcentaje($porcentaje)
-{
+function obtenerClasePorPorcentaje($porcentaje) {
     $porcentaje = intval($porcentaje);
-    if ($porcentaje >= 0 && $porcentaje <= 24) {
-        return 'estado-peligroso';
-    } elseif ($porcentaje >= 25 && $porcentaje <= 49) {
-        return 'estado-precaucion';
-    } elseif ($porcentaje >= 50 && $porcentaje <= 74) {
-        return 'estado-seguro';
-    } elseif ($porcentaje >= 75 && $porcentaje <= 100) {
-        return 'estado-nuevas';
-    }
+    if ($porcentaje <= 24) return 'estado-peligroso';
+    if ($porcentaje <= 49) return 'estado-precaucion';
+    if ($porcentaje <= 74) return 'estado-seguro';
+    if ($porcentaje <= 100) return 'estado-nuevas';
     return '';
 }
 
-function obtenerEstadoBateriaPorPorcentaje($porcentaje)
-{
+function obtenerEstadoBateriaPorPorcentaje($porcentaje) {
     $porcentaje = intval($porcentaje);
-    if ($porcentaje >= 0 && $porcentaje <= 24) {
-        return 'Crítico';
-    } elseif ($porcentaje >= 25 && $porcentaje <= 49) {
-        return 'Bajo';
-    } elseif ($porcentaje >= 50 && $porcentaje <= 74) {
-        return 'Bueno';
-    } elseif ($porcentaje >= 75 && $porcentaje <= 100) {
-        return 'Excelente';
-    }
+    if ($porcentaje <= 24) return 'Crítico';
+    if ($porcentaje <= 49) return 'Bajo';
+    if ($porcentaje <= 74) return 'Bueno';
+    if ($porcentaje <= 100) return 'Excelente';
     return 'N/A';
 }
 
 // Función para renderizar el footer con número de página
 function renderFooter($pageNumber) {
-    return '
-    <div class="footer">
+    return '<div class="footer">
         <span class="footer-text">LA MEJOR FORMA DE COMPRAR UN CARRO USADO</span>
         <span class="footer-page">Página ' . $pageNumber . '</span>
     </div>';
 }
+
+// Determinar si es carro o moto
+$esCarro = (isset($peritaje['type']) && $peritaje['type'] === 'carro');
 ?>
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peritaje Completo - <?php echo htmlspecialchars($peritaje['placa']); ?></title>
-    <style>
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-
-            @page {
-                size: legal;
-                margin: 1cm 0.8cm;
-            }
-
-            body {
-                margin: 0;
-                padding: 0;
-            }
-
-            .page {
-                page-break-after: always;
-                min-height: auto;
-            }
-
-            .page:last-child {
-                page-break-after: auto;
-            }
-        }
-    </style>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html {
-            font-size: 13px;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #f5f5f5;
-        }
-
-        @media print {
-
-            html,
-            body {
-                font-size: 12px;
-            }
-
-            body {
-                background-color: white;
-            }
-        }
-
-        :root {
-            --main-color: #fff280;
-            --gray-color: #d8d8d8;
-        }
-
-        p {
-            margin: 0;
-            font-size: 14px;
-        }
-
-        .plate {
-            background-color: var(--gray-color);
-            border: 1px solid var(--main-color);
-            text-align: center;
-            width: fit-content;
-            padding: 2px 1.5rem;
-            border-radius: 4px;
-            margin: auto;
-            letter-spacing: 3px;
-            font-weight: bold;
-            font-size: 2rem;
-            -webkit-text-stroke: .8px var(--main-color);
-        }
-
-        .yellow-background {
-            background: var(--main-color);
-            border-radius: 8px;
-            text-wrap: nowrap;
-            font-size: 1rem;
-
-        }
-
-        .sub-title {
-            text-align: center;
-            margin: 1rem auto;
-            width: fit-content;
-            padding: .2rem 1.5rem;
-        }
-
-        .sub-title-vertical {
-            text-align: center;
-            margin: 0 1rem;
-            width: fit-content;
-            padding: 1.5rem .2rem;
-            writing-mode: sideways-lr;
-        }
-
-        .label {
-            min-width: 40%;
-            width: fit-content;
-            padding: .2rem .5rem;
-            align-self: center;
-        }
-
-        .input {
-            width: 50%;
-            padding: .2rem .5rem;
-            border: 1px var(--main-color) solid;
-            border-radius: 8px;
-            font-size: 10px;
-        }
-
-        .remarks {
-            border: 1px solid var(--main-color);
-            padding: .5rem 1rem;
-            border-radius: 8px;
-            height: 50px;
-            font-size: .8rem
-        }
-
-        .page {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            background: white;
-            min-height: 35.56cm; /* Altura legal/oficio */
-            justify-content: space-between; /* Separa contenido del footer */
-        }
-
-        @media screen {
-            .page {
-                border: 1px solid #ddd;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                max-width: 26cm;
-                min-height: 35.56cm;
-                margin: 1rem auto 2rem auto;
-            }
-        }
-
-        @media print {
-            .page {
-                min-height: 35.56cm; /* Altura legal/oficio en impresión */
-            }
-        }
-
-        .simple-border {
-            border: 1px solid var(--main-color)
-        }
-
-        .w-100 {
-            width: 100%;
-        }
-
-        .w-50 {
-            width: 50%;
-        }
-
-        .d-flex {
-            display: flex;
-        }
-
-        .flex-column {
-            flex-direction: column;
-        }
-
-        .gap-2 {
-            gap: 0.5rem;
-        }
-
-        .gap-3 {
-            gap: 1rem;
-        }
-
-        .gap-4 {
-            gap: 1.5rem;
-        }
-
-        .align-items-center {
-            align-items: center;
-        }
-
-        .justify-content-between {
-            justify-content: space-between;
-        }
-
-        .justify-content-center {
-            justify-content: center;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .mx-auto {
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .my-2 {
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .mb-3 {
-            margin-bottom: 1rem;
-        }
-
-        .me-4 {
-            margin-right: 1.5rem;
-        }
-
-        .me-5 {
-            margin-right: 3rem;
-        }
-
-        .ms-4 {
-            margin-left: 1.5rem;
-        }
-
-        .mb-0 {
-            margin-bottom: 0;
-        }
-
-        .p-2 {
-            padding: 0.5rem;
-        }
-
-        .rounded {
-            border-radius: 8px;
-        }
-
-        .h-100 {
-            height: 100%;
-        }
-
-        /* Estilos para la cabecera */
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            margin: 0;
-            padding: 0;
-        }
-
-        h1 {
-            font-size: 1.3rem;
-            font-weight: bold;
-        }
-
-        h3 {
-            font-size: 0.9rem;
-            font-weight: normal;
-        }
-
-        .header-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            line-height: 1.2;
-        }
-
-        .header-subtitle {
-            font-size: 0.9rem;
-            font-weight: normal;
-            text-align: center;
-            margin: 0.2rem 0 0.5rem 0;
-        }
-
-        .header-container {
-            display: flex;
-            gap: 1rem;
-            align-items: flex-start;
-            border: 2px solid #000;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .header-logo {
-            width: 120px;
-            flex-shrink: 0;
-        }
-
-        .header-info {
-            flex: 1;
-            font-size: 0.75rem;
-            line-height: 1.4;
-        }
-
-        .header-service {
-            width: 180px;
-            flex-shrink: 0;
-            background-color: var(--main-color);
-            padding: 0.5rem;
-            border-radius: 5px;
-            font-size: 0.75rem;
-            line-height: 1.4;
-        }
-
-        .header-service p {
-            margin: 0.1rem 0;
-        }
-
-        /* Pie de página */
-        .footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: #666;
-            padding: 0.5rem 0;
-            border-top: 1px solid #ddd;
-            margin-top: auto; /* Empuja el footer al fondo */
-            flex-shrink: 0; /* Evita que se contraiga */
-        }
-
-        .footer-text {
-            font-weight: normal;
-        }
-
-        .footer-page {
-            font-weight: bold;
-        }
-
-        /* Contenedor de contenido de página */
-        .page-content {
-            flex: 1; /* Ocupa el espacio disponible */
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Estilos para llantas y amortiguadores */
-        .estado-peligroso {
-            background-color: #ff3933 !important;
-            color: white;
-        }
-
-        .estado-precaucion {
-            background-color: #ff8a33 !important;
-            color: white;
-        }
-
-        .estado-seguro {
-            background-color: #ffff33 !important;
-            color: #333;
-        }
-
-        .estado-nuevas {
-            background-color: #36d048 !important;
-            color: white;
-        }
-
-        .tabla-llantas {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .tabla-llantas th {
-            background-color: var(--main-color);
-            padding: 0.3rem 0.5rem;
-            text-align: center;
-            font-size: 10px;
-            font-weight: bold;
-            border: 1px solid var(--main-color);
-        }
-
-        .tabla-llantas td {
-            padding: 0.3rem 0.5rem;
-            font-size: 9px;
-            border: 1px solid var(--main-color);
-            text-align: center;
-        }
-
-        .imagen-llantas {
-            width: 200px;
-            height: auto;
-            object-fit: contain;
-        }
-
-        @media print {
-            .imagen-llantas {
-                max-height: 180px;
-            }
-        }
-
-        /* Estilos para Fijación Fotográfica */
-        .descripcion-fotografica {
-            font-size: 0.75rem;
-            text-align: center;
-            margin-bottom: 1rem;
-            font-weight: normal;
-        }
-
-        .grid-fotografias {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .contenedor-imagen {
-            width: 100%;
-            height: 200px;
-            border: 1px solid var(--main-color);
-            border-radius: 4px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #f9f9f9;
-        }
-
-        .imagen-fijacion {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .contenedor-vacio {
-            background-color: #f0f0f0;
-        }
-
-        .placeholder-imagen {
-            color: #999;
-            font-size: 0.75rem;
-            text-align: center;
-        }
-
-        .prueba-ruta {
-            border: 1px solid var(--main-color);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            min-height: 80px;
-            font-size: 0.8rem;
-            margin-top: 1rem;
-        }
-
-        @media print {
-            .grid-fotografias {
-                break-inside: avoid;
-            }
-            
-            .contenedor-imagen {
-                height: 180px;
-            }
-        }
-
-        /* Estilos para sección de firmas */
-        .seccion-firmas {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            padding: 1rem;
-        }
-
-        .contenedor-firmas {
-            display: flex;
-            justify-content: space-between;
-            gap: 2rem;
-        }
-
-        .firma-izquierda,
-        .firma-derecha {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .contenedor-firma-mecanico {
-            display: flex;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-
-        .firma-mecanico {
-            width: 50%;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .titulo-firma {
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin: 0;
-            text-align: center;
-        }
-
-        .linea-firma {
-            border-bottom: 2px solid #000;
-            margin: 2rem 0 0.5rem 0;
-            min-height: 60px;
-        }
-
-        .campo-cc {
-            font-size: 0.85rem;
-            margin: 0;
-            text-align: left;
-        }
-
-        .aviso-legal {
-            background-color: #f9f9f9;
-            border: 1px solid var(--main-color);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .aviso-legal p {
-            font-size: 0.7rem;
-            line-height: 1.4;
-            text-align: justify;
-            margin: 0;
-        }
-
-        .aviso-legal strong {
-            color: #d32f2f;
-            font-weight: bold;
-        }
-
-        @media print {
-            .seccion-firmas {
-                break-inside: avoid;
-            }
-        }
-    </style>
+    <title>Peritaje - <?= htmlspecialchars($peritaje['placa']) ?></title>
+    <link rel="stylesheet" href="<?= $BASE_URL ?>/public/assets/css/pdf-expertise.css">
 </head>
-
 <body>
 
-    <!-- BOTONES DE ACCIÓN (se ocultan al imprimir) -->
-    <div class="no-print" style="position: fixed; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 10px;">
-        <button onclick="window.print()" style="background-color: #FFD700; border: 2px solid #000; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px;">
-            🖨️ Imprimir / Guardar PDF
-        </button>
-        <button onclick="window.close()" style="background-color: #f44336; color: white; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 5px;">
-            ✖ Cerrar
-        </button>
-    </div>
+<!-- Botones de acción (se ocultan al imprimir) -->
+<div class="action-buttons no-print">
+    <button onclick="window.print()" class="btn-print">🖨️ Imprimir / Guardar PDF</button>
+    <button onclick="window.close()" class="btn-close-pdf">✖ Cerrar</button>
+</div>
 
-    <main class="w-100">
-        <div class="page">
-            <div class="page-content">
-                <div class="d-flex flex-column gap-3">
-                    <section class="d-flex flex-column">
+<main class="w-100">
+
+    <!-- ================== PÁGINA 1 ================== -->
+    <div class="page">
+        <div class="page-content">
+            <div class="d-flex flex-column gap-3">
+                
+                <!-- Encabezado -->
+                <section class="d-flex flex-column">
                     <h1 class="text-center">SALA TÉCNICA EN AUTOMOTORES</h1>
-                    <h3 class="text-center mb-3">CERIFICACIÓN TÉCNICA EN IDENTIFICACIÓN DE AUTOMOTORES</h3>
+                    <h3 class="text-center mb-3">CERTIFICACIÓN TÉCNICA EN IDENTIFICACIÓN DE AUTOMOTORES</h3>
                     <header class="d-flex gap-4 align-items-center mx-auto">
-                        <img src="/pritec_v2/public/assets/img/pritec.png" style="width: 120px;object-fit: contain;" />
+                        <img src="/pritec_v2/public/assets/img/pritec.png" style="width: 120px; object-fit: contain;" alt="Pritec Logo">
                         <div class="me-3">
                             <p>Dirección: Carrera 16 No. 18-197 Barrio Tenerife</p>
                             <p>Teléfono: 3132049245-3158928492</p>
@@ -625,72 +81,54 @@ function renderFooter($pageNumber) {
                             <p>Peritos e inspecciones técnicas vehiculares Neiva-Huila</p>
                         </div>
                         <div>
-                            <p>Fecha: <?php echo $peritaje["fecha"]; ?></p>
-                            <p>No. Servicio: <?php echo $peritaje["no_servicio"]; ?></p>
-                            <p>Servicio para: <?php echo $peritaje["servicio_para"]; ?></p>
-                            <p>Convenio: <?php echo $peritaje["convenio"]; ?></p>
+                            <p>Fecha: <?= $peritaje["fecha"] ?></p>
+                            <p>No. Servicio: <?= $peritaje["no_servicio"] ?></p>
+                            <p>Servicio para: <?= $peritaje["servicio_para"] ?></p>
+                            <p>Convenio: <?= $peritaje["convenio"] ?></p>
                         </div>
                     </header>
                 </section>
+
+                <!-- Datos del Vehículo y Solicitante -->
                 <section class="d-flex gap-2 rounded p-2 simple-border">
                     <div class="d-flex" style="width: 33%;">
-                        <div class="yellow-background sub-title-vertical">
-                            DATOS DEL VEHÍCULO
-                        </div>
+                        <div class="yellow-background sub-title-vertical">DATOS DEL VEHÍCULO</div>
                         <div class="d-flex flex-column gap-2 w-100">
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Clase</div>
-                                <div class="input">
-                                    <?php echo $peritaje["clase"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["clase"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Marca</div>
-                                <div class="input">
-                                    <?php echo $peritaje["marca"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["marca"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Línea</div>
-                                <div class="input">
-                                    <?php echo $peritaje["linea"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["linea"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Cilindraje</div>
-                                <div class="input">
-                                    <?php echo $peritaje["cilindraje"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["cilindraje"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Kilometraje</div>
-                                <div class="input">
-                                    <?php echo $peritaje["kilometraje"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["kilometraje"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Servicio</div>
-                                <div class="input">
-                                    <?php echo $peritaje["servicio"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["servicio"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Modelo</div>
-                                <div class="input">
-                                    <?php echo $peritaje["modelo"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["modelo"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Color</div>
-                                <div class="input">
-                                    <?php echo $peritaje["color"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["color"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">No. de chasis</div>
-                                <div class="input">
-                                    <?php echo $peritaje["no_chasis"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["no_chasis"] ?></div>
                             </div>
                         </div>
                     </div>
@@ -698,96 +136,65 @@ function renderFooter($pageNumber) {
                         <div class="d-flex flex-column gap-2 w-100">
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">No. de motor</div>
-                                <div class="input">
-                                    <?php echo $peritaje["no_motor"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["no_motor"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">No. de serie</div>
-                                <div class="input">
-                                    <?php echo $peritaje["no_serie"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["no_serie"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Tipo de carrocería</div>
-                                <div class="input">
-                                    <?php echo $peritaje["tipo_carroceria"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["tipo_carroceria"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
-                                <div class="yellow-background label">Organismo de <br /> tránsito</div>
-                                <div class="input">
-                                    <?php echo $peritaje["organismo_transito"]; ?>
-                                </div>
+                                <div class="yellow-background label">Organismo de<br>tránsito</div>
+                                <div class="input"><?= $peritaje["organismo_transito"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Código fasecolda</div>
-                                <div class="input">
-                                    <?php echo $peritaje["codigo_fasecolda"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["codigo_fasecolda"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Valor fasecolda</div>
-                                <div class="input">
-                                    <?php echo $peritaje["valor_fasecolda"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["valor_fasecolda"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Valor sugerido</div>
-                                <div class="input">
-                                    <?php echo $peritaje["valor_sugerido"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["valor_sugerido"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Valor accesorios</div>
-                                <div class="input">
-                                    <?php echo $peritaje["valor_accesorios"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["valor_accesorios"] ?></div>
                             </div>
                         </div>
                     </div>
                     <div class="me-2" style="width: 33%;">
-                        <div class="plate"><?php echo $peritaje["placa"]; ?></div>
+                        <div class="plate"><?= $peritaje["placa"] ?></div>
                         <div class="yellow-background sub-title">DATOS DEL SOLICITANTE</div>
                         <div class="d-flex flex-column gap-2">
                             <div class="d-flex gap-2">
-                                <div class="yellow-background label">Nombres y <br /> apellidos</div>
-                                <div class="input">
-                                    <?php echo $peritaje["nombre_apellidos"]; ?>
-                                </div>
+                                <div class="yellow-background label">Nombres y<br>apellidos</div>
+                                <div class="input"><?= $peritaje["nombre_apellidos"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Identificación</div>
-                                <div class="input">
-                                    <?php echo $peritaje["identificacion"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["identificacion"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Teléfono</div>
-                                <div class="input">
-                                    <?php echo $peritaje["telefono"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["telefono"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Dirección</div>
-                                <div class="input">
-                                    <?php echo $peritaje["direccion"]; ?>
-                                </div>
+                                <div class="input"><?= $peritaje["direccion"] ?></div>
                             </div>
                             <div class="d-flex gap-2">
                                 <div class="yellow-background label">Correo</div>
-                                <div class="input" style="font-size: 10px;">
-                                    <?php echo $peritaje["email"]; ?>
-                                </div>
+                                <div class="input" style="font-size: 10px;"><?= $peritaje["email"] ?></div>
                             </div>
                         </div>
                     </div>
                 </section>
-
-                <?php
-                // Determinar si es carro o moto
-                $esCarro = (isset($peritaje['type']) && $peritaje['type'] === 'carro');
-                ?>
 
                 <?php if ($esCarro): ?>
                     <!-- CARROCERÍA - Solo para carros -->
@@ -1522,7 +929,14 @@ function renderFooter($pageNumber) {
             <?php endif; ?>
 
             <section class="p-2 rounded my-2 simple-border">
-                <div class="yellow-background sub-title w-100 text-center" style="margin-bottom: 0.5rem;">
+                <div class="yellow-background sub-title w-100 text-center seccion-titulo-con-icono" style="margin-bottom: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                        <path d="M7 8h2m2 0h2m2 0h2"></path>
+                        <path d="M7 11h10"></path>
+                    </svg>
                     PRUEBA DE OBSERVACIÓN Y DIAGNÓSTICO SCANNER
                 </div>
 
@@ -1539,7 +953,15 @@ function renderFooter($pageNumber) {
             <!-- TREN MOTRIZ Y DIRECCIÓN -->
             <section class="p-2 rounded my-2 simple-border">
                 <div class="d-flex gap-2">
-                    <div class="yellow-background sub-title-vertical">TREN MOTRIZ Y DIRECCIÓN</div>
+                    <div class="yellow-background sub-title-vertical">
+                        <span class="vertical-icon-text">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 1v4m0 14v4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83M1 12h4m14 0h4M4.22 19.78l2.83-2.83m9.9-9.9l2.83-2.83"></path>
+                            </svg>
+                            TREN MOTRIZ Y DIRECCIÓN
+                        </span>
+                    </div>
                     
                     <div class="d-flex flex-column w-100">
                         <!-- Tabla de inspección -->
@@ -1579,7 +1001,14 @@ function renderFooter($pageNumber) {
             <!-- NIVEL DE LÍQUIDOS -->
             <section class="p-2 rounded my-2 simple-border">
                 <div class="d-flex gap-2">
-                    <div class="yellow-background sub-title-vertical">NIVEL DE LÍQUIDOS</div>
+                    <div class="yellow-background sub-title-vertical">
+                        <span class="vertical-icon-text">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                            </svg>
+                            NIVEL DE LÍQUIDOS
+                        </span>
+                    </div>
                     
                     <div class="d-flex flex-column w-100">
                         <!-- Tabla de inspección -->
@@ -1615,7 +1044,17 @@ function renderFooter($pageNumber) {
                 <?php if (!$esCarro): ?>
                     <section class="p-2 rounded my-2 simple-border">
                         <div class="d-flex gap-2">
-                            <div class="yellow-background sub-title-vertical">MOTOR</div>
+                            <div class="yellow-background sub-title-vertical">
+                                <span class="vertical-icon-text">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="6" width="4" height="12" rx="1"></rect>
+                                        <rect x="18" y="6" width="4" height="12" rx="1"></rect>
+                                        <path d="M6 8h12v8H6z"></path>
+                                        <path d="M10 8v8m4-8v8"></path>
+                                    </svg>
+                                    MOTOR
+                                </span>
+                            </div>
                             
                             <div class="d-flex flex-column w-100">
                                 <!-- Tabla de inspección -->
@@ -1663,7 +1102,17 @@ function renderFooter($pageNumber) {
                 <?php if ($esCarro): ?>
                     <section class="p-2 rounded my-2 simple-border">
                         <div class="d-flex gap-2">
-                            <div class="yellow-background sub-title-vertical">MOTOR</div>
+                            <div class="yellow-background sub-title-vertical">
+                                <span class="vertical-icon-text">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="6" width="4" height="12" rx="1"></rect>
+                                        <rect x="18" y="6" width="4" height="12" rx="1"></rect>
+                                        <path d="M6 8h12v8H6z"></path>
+                                        <path d="M10 8v8m4-8v8"></path>
+                                    </svg>
+                                    MOTOR
+                                </span>
+                            </div>
                             
                             <div class="d-flex flex-column w-100">
                                 <!-- Tabla de inspección -->
@@ -1704,7 +1153,16 @@ function renderFooter($pageNumber) {
                 <!-- INTERIOR DEL AUTOMOTOR -->
                 <section class="p-2 rounded my-2 simple-border">
                     <div class="d-flex gap-2">
-                        <div class="yellow-background sub-title-vertical">INTERIOR DEL AUTOMOTOR</div>
+                        <div class="yellow-background sub-title-vertical">
+                            <span class="vertical-icon-text">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M12 3v2m0 14v2M3 12h2m14 0h2"></path>
+                                </svg>
+                                INTERIOR DEL AUTOMOTOR
+                            </span>
+                        </div>
                         
                         <div class="d-flex flex-column w-100">
                             <!-- Tabla de inspección -->
@@ -1744,7 +1202,15 @@ function renderFooter($pageNumber) {
                 <!-- FUGAS -->
                 <section class="p-2 rounded my-2 simple-border">
                     <div class="d-flex gap-2">
-                        <div class="yellow-background sub-title-vertical">FUGAS</div>
+                        <div class="yellow-background sub-title-vertical">
+                            <span class="vertical-icon-text">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                                    <path d="M12 8v4m0 4h.01"></path>
+                                </svg>
+                                FUGAS
+                            </span>
+                        </div>
                         
                         <div class="d-flex flex-column w-100">
                             <!-- Tabla de inspección -->
@@ -1780,7 +1246,14 @@ function renderFooter($pageNumber) {
                 <!-- COMPONENTES -->
                 <section class="p-2 rounded my-2 simple-border">
                     <div class="d-flex gap-2">
-                        <div class="yellow-background sub-title-vertical">COMPONENTES</div>
+                        <div class="yellow-background sub-title-vertical">
+                            <span class="vertical-icon-text">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                </svg>
+                                COMPONENTES
+                            </span>
+                        </div>
                         
                         <div class="d-flex flex-column w-100">
                             <!-- Tabla de inspección -->
@@ -1822,7 +1295,15 @@ function renderFooter($pageNumber) {
             <div class="page-content">
                 <section class="p-2 rounded my-2 simple-border">
                     <div class="d-flex gap-2">
-                        <div class="yellow-background sub-title-vertical">FIJACIÓN FOTOGRÁFICA</div>
+                        <div class="yellow-background sub-title-vertical">
+                            <span class="vertical-icon-text">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                                FIJACIÓN FOTOGRÁFICA
+                            </span>
+                        </div>
                         
                         <div class="d-flex flex-column w-100">
                             <p class="descripcion-fotografica">
@@ -1879,7 +1360,7 @@ function renderFooter($pageNumber) {
                     <!-- Firma del mecánico (centrada) -->
                     <div class="contenedor-firma-mecanico">
                         <div class="firma-mecanico">
-                            <p class="titulo-firma">Firma Mecánico Automotriz</p>
+                            <p class="titulo-firma">Firma Perito</p>
                             <div class="linea-firma"></div>
                             <p class="campo-cc">CC:</p>
                         </div>

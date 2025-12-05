@@ -48,6 +48,9 @@ class VehicleTypeController extends Controller
             $totalRecords = $this->vehicleTypeModel->count($search);
             $totalPages = ceil($totalRecords / $limit);
             
+            // Obtener estadísticas completas
+            $statistics = $this->vehicleTypeModel->getStatistics();
+            
             // Generar HTML de paginación
             $pagination = renderPagination($page, $totalPages, $totalRecords, '', $limit);
             
@@ -57,7 +60,8 @@ class VehicleTypeController extends Controller
                 'csrf_token' => $this->generateCSRFToken(),
                 'pagination' => $pagination,
                 'search' => $search,
-                'totalRecords' => $totalRecords
+                'totalRecords' => $totalRecords,
+                'statistics' => $statistics
             ];
             
             $this->view('vehicle_types/index', $data);
