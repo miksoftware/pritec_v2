@@ -102,16 +102,8 @@ class ExpertiseController extends Controller {
                 }
             }
             
-            // Verificar si ya existe un borrador del usuario
-            $existingDraft = $this->expertiseModel->getLastDraft($_SESSION['user_id']);
-            
-            if ($existingDraft) {
-                // Ya hay un borrador, preguntar al usuario qué hacer
-                $_SESSION['pending_draft'] = $existingDraft['id'];
-                $_SESSION['warning'] = 'Ya tienes un peritaje en progreso. ¿Deseas continuar con ese peritaje o crear uno nuevo?';
-                $this->redirect('expertise/create');
-                return;
-            }
+            // NOTA: Se permite crear múltiples borradores
+            // Los usuarios pueden tener varios peritajes en progreso simultáneamente
             
             // Preparar datos para crear borrador
             $data = [
@@ -207,11 +199,6 @@ class ExpertiseController extends Controller {
             
             if (!$expertise) {
                 throw new Exception('Peritaje no encontrado');
-            }
-            
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                throw new Exception('No tienes permiso para editar este peritaje');
             }
             
             $data = [
@@ -355,11 +342,6 @@ class ExpertiseController extends Controller {
             
             if (!$expertise) {
                 throw new Exception('Peritaje no encontrado');
-            }
-            
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                throw new Exception('No tienes permiso para editar este peritaje');
             }
             
             // Obtener inspecciones existentes de carrocería
@@ -539,11 +521,6 @@ class ExpertiseController extends Controller {
                 throw new Exception('Peritaje no encontrado');
             }
             
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                throw new Exception('No tienes permiso para editar este peritaje');
-            }
-            
             // Obtener inspecciones existentes de estructura
             $existingInspections = $this->expertiseModel->getInspectionsBySection($expertiseId, 'estructura');
             
@@ -658,11 +635,6 @@ class ExpertiseController extends Controller {
             
             if (!$expertise) {
                 throw new Exception('Peritaje no encontrado');
-            }
-            
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                throw new Exception('No tienes permiso para editar este peritaje');
             }
             
             // Obtener inspecciones existentes de chasis
@@ -780,12 +752,6 @@ class ExpertiseController extends Controller {
             if (!$expertise) {
                 $_SESSION['error'] = 'No se encontró el peritaje';
                 $this->redirect('expertise/create');
-            }
-            
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                $_SESSION['error'] = 'No tiene permisos para editar este peritaje';
-                $this->redirect('expertise');
             }
             
             $data = [
@@ -913,12 +879,6 @@ class ExpertiseController extends Controller {
                 $this->redirect('expertise/create');
             }
             
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                $_SESSION['error'] = 'No tiene permisos para editar este peritaje';
-                $this->redirect('expertise');
-            }
-            
             $data = [
                 'csrf_token' => $this->generateCsrfToken(),
                 'expertise' => $expertise
@@ -961,16 +921,36 @@ class ExpertiseController extends Controller {
             
             // Validar según el tipo de vehículo
             if ($vehicleType === 'moto') {
-                // Para motos: solo validar delantero y trasero (derecho)
+                // Para motos: obtener cantidad de amortiguadores configurados
+                $cantDelanteros = isset($_POST['cant_amortiguadores_delanteros']) ? intval($_POST['cant_amortiguadores_delanteros']) : 1;
+                $cantTraseros = isset($_POST['cant_amortiguadores_traseros']) ? intval($_POST['cant_amortiguadores_traseros']) : 1;
+                
+                // Validar amortiguador delantero derecho (siempre requerido)
                 if ($amortiguador_anterior_derecho === null || $amortiguador_anterior_derecho < 0 || $amortiguador_anterior_derecho > 100) {
                     throw new Exception('El porcentaje del amortiguador delantero debe estar entre 0 y 100');
                 }
+                
+                // Validar amortiguador trasero derecho (siempre requerido)
                 if ($amortiguador_posterior_derecho === null || $amortiguador_posterior_derecho < 0 || $amortiguador_posterior_derecho > 100) {
                     throw new Exception('El porcentaje del amortiguador trasero debe estar entre 0 y 100');
                 }
-                // Los amortiguadores izquierdos se guardan como 0 para motos
-                $amortiguador_anterior_izquierdo = 0;
-                $amortiguador_posterior_izquierdo = 0;
+                
+                // Validar izquierdos solo si tiene 2 amortiguadores
+                if ($cantDelanteros == 2) {
+                    if ($amortiguador_anterior_izquierdo === null || $amortiguador_anterior_izquierdo < 0 || $amortiguador_anterior_izquierdo > 100) {
+                        throw new Exception('El porcentaje del amortiguador delantero izquierdo debe estar entre 0 y 100');
+                    }
+                } else {
+                    $amortiguador_anterior_izquierdo = 0;
+                }
+                
+                if ($cantTraseros == 2) {
+                    if ($amortiguador_posterior_izquierdo === null || $amortiguador_posterior_izquierdo < 0 || $amortiguador_posterior_izquierdo > 100) {
+                        throw new Exception('El porcentaje del amortiguador trasero izquierdo debe estar entre 0 y 100');
+                    }
+                } else {
+                    $amortiguador_posterior_izquierdo = 0;
+                }
             } else {
                 // Para carros: validar los 4 amortiguadores
                 $porcentajes = [
@@ -985,6 +965,10 @@ class ExpertiseController extends Controller {
                         throw new Exception('El porcentaje del amortiguador ' . str_replace('_', ' ', $nombre) . ' debe estar entre 0 y 100');
                     }
                 }
+                
+                // Para carros no aplica la cantidad configurable
+                $cantDelanteros = 2;
+                $cantTraseros = 2;
             }
             
             // Preparar datos para actualizar
@@ -993,6 +977,8 @@ class ExpertiseController extends Controller {
                 'amortiguador_anterior_derecho' => $amortiguador_anterior_derecho,
                 'amortiguador_posterior_izquierdo' => $amortiguador_posterior_izquierdo,
                 'amortiguador_posterior_derecho' => $amortiguador_posterior_derecho,
+                'cant_amortiguadores_delanteros' => $cantDelanteros,
+                'cant_amortiguadores_traseros' => $cantTraseros,
                 'observaciones_amortiguadores' => $_POST['observaciones_amortiguadores'] ?? null
             ];
             
@@ -1042,12 +1028,6 @@ class ExpertiseController extends Controller {
             if (!$expertise) {
                 $_SESSION['error'] = 'No se encontró el peritaje';
                 $this->redirect('expertise/create');
-            }
-            
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                $_SESSION['error'] = 'No tiene permisos para editar este peritaje';
-                $this->redirect('expertise');
             }
             
             $data = [
@@ -1152,12 +1132,6 @@ class ExpertiseController extends Controller {
             if (!$expertise) {
                 $_SESSION['error'] = 'No se encontró el peritaje';
                 $this->redirect('expertise/create');
-            }
-            
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                $_SESSION['error'] = 'No tiene permisos para editar este peritaje';
-                $this->redirect('expertise');
             }
             
             $data = [
@@ -1299,12 +1273,6 @@ class ExpertiseController extends Controller {
                 $this->redirect('expertise/create');
             }
             
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                $_SESSION['error'] = 'No tiene permisos para editar este peritaje';
-                $this->redirect('expertise');
-            }
-            
             $data = [
                 'title' => 'Nuevo Peritaje Completo - Paso 10: Fugas y Niveles',
                 'csrf_token' => $this->generateCSRFToken(),
@@ -1414,12 +1382,6 @@ class ExpertiseController extends Controller {
             if (!$expertise) {
                 $_SESSION['error'] = 'No se encontró el peritaje';
                 $this->redirect('expertise/create');
-            }
-            
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                $_SESSION['error'] = 'No tiene permisos para editar este peritaje';
-                $this->redirect('expertise');
             }
             
             $data = [
@@ -1592,10 +1554,6 @@ class ExpertiseController extends Controller {
                     throw new Exception('No se pudo cargar el peritaje');
                 }
                 
-                if ($expertise['user_id'] != $_SESSION['user_id']) {
-                    throw new Exception('No tiene permisos para ver este peritaje');
-                }
-                
                 // Cargar en sesión para poder continuar editando
                 $_SESSION['expertise_id'] = $requestedId;
                 $expertiseId = $requestedId;
@@ -1606,11 +1564,6 @@ class ExpertiseController extends Controller {
             
             if (!$expertise) {
                 throw new Exception('No se pudo cargar el peritaje');
-            }
-            
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                throw new Exception('No tiene permisos para ver este peritaje');
             }
             
             // Obtener fotos desde la BD
@@ -1951,11 +1904,6 @@ class ExpertiseController extends Controller {
                 throw new Exception('Peritaje no encontrado');
             }
             
-            // Verificar que el usuario sea el dueño
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                throw new Exception('No tiene permisos para editar este peritaje');
-            }
-            
             // Cargar el expertise_id en la sesión para poder editarlo
             $_SESSION['expertise_id'] = $id;
             
@@ -1995,10 +1943,6 @@ class ExpertiseController extends Controller {
                 throw new Exception('El peritaje no existe');
             }
             
-            if ($expertise['user_id'] != $_SESSION['user_id']) {
-                throw new Exception('No tiene permisos para completar este peritaje');
-            }
-            
             // Validar que el peritaje tenga todos los datos necesarios
             if ($expertise['current_step'] < 11) {
                 throw new Exception('Debe completar todos los pasos antes de finalizar el peritaje');
@@ -2032,23 +1976,64 @@ class ExpertiseController extends Controller {
     }
     
     /**
-     * Generar PDF de un peritaje
+     * Eliminar un peritaje (borrador o completado)
      * @param int $id ID del expertise
      */
-    public function generatePDF($id) {
-        // DEBUG TEMPORAL - Agregar ?debug=1 a la URL para ver errores
-        $debugMode = isset($_GET['debug']) && $_GET['debug'] == '1';
-        
+    public function delete($id) {
         try {
+            header('Content-Type: application/json');
+            
             // Validar ID
             if (empty($id) || !is_numeric($id)) {
                 throw new Exception('ID de peritaje inválido');
             }
             
-            if ($debugMode) {
-                echo "<pre>DEBUG: ID recibido = $id\n";
-                echo "SESSION user_id = " . ($_SESSION['user_id'] ?? 'NO DEFINIDO') . "\n";
-                echo "SESSION role = " . ($_SESSION['role'] ?? 'NO DEFINIDO') . "\n</pre>";
+            // Obtener el peritaje
+            $expertise = $this->expertiseModel->getByIdComplete($id);
+            
+            if (!$expertise) {
+                throw new Exception('Peritaje no encontrado');
+            }
+            
+            // Verificar que el usuario sea el dueño o sea admin
+            if ($expertise['user_id'] != $_SESSION['user_id'] && $_SESSION['role'] !== 'admin') {
+                throw new Exception('No tienes permiso para eliminar este peritaje');
+            }
+            
+            // Eliminar el peritaje con sus relaciones
+            $deleted = $this->expertiseModel->deleteWithRelations($id);
+            
+            if (!$deleted) {
+                throw new Exception('Error al eliminar el peritaje');
+            }
+            
+            // Si el peritaje eliminado era el que estaba en sesión, limpiar
+            if (isset($_SESSION['expertise_id']) && $_SESSION['expertise_id'] == $id) {
+                unset($_SESSION['expertise_id']);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Peritaje eliminado correctamente'
+            ]);
+            
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
+     * Generar PDF de un peritaje
+     * @param int $id ID del expertise
+     */
+    public function generatePDF($id) {
+        try {
+            // Validar ID
+            if (empty($id) || !is_numeric($id)) {
+                throw new Exception('ID de peritaje inválido');
             }
             
             // Obtener datos completos del peritaje
@@ -2056,17 +2041,6 @@ class ExpertiseController extends Controller {
             
             if (!$expertise) {
                 throw new Exception('Peritaje no encontrado (ID: ' . $id . ')');
-            }
-            
-            if ($debugMode) {
-                echo "<pre>DEBUG: Expertise encontrado\n";
-                echo "expertise user_id = " . ($expertise['user_id'] ?? 'NULL') . "\n";
-                echo "Comparación: " . $expertise['user_id'] . " != " . $_SESSION['user_id'] . " = " . ($expertise['user_id'] != $_SESSION['user_id'] ? 'true' : 'false') . "\n</pre>";
-            }
-            
-            // Verificar que el usuario tenga acceso
-            if ($expertise['user_id'] != $_SESSION['user_id'] && ($_SESSION['role'] ?? '') != 'admin') {
-                throw new Exception('No tienes permiso para ver este peritaje (user_id: ' . $expertise['user_id'] . ' vs session: ' . ($_SESSION['user_id'] ?? 'none') . ')');
             }
             
             // Decodificar JSON de motor_sistemas_data
@@ -2209,19 +2183,7 @@ class ExpertiseController extends Controller {
             
         } catch (Exception $e) {
             // Log del error para debugging
-            error_log("Error en generatePDF (ID: $id): " . $e->getMessage() . " - Trace: " . $e->getTraceAsString());
-            
-            // Si está en modo debug, mostrar el error en pantalla
-            if (isset($_GET['debug']) && $_GET['debug'] == '1') {
-                echo "<pre style='background:#ffcccc; padding:20px; margin:20px;'>";
-                echo "<h2>ERROR EN PDF</h2>";
-                echo "Mensaje: " . htmlspecialchars($e->getMessage()) . "\n\n";
-                echo "Archivo: " . $e->getFile() . "\n";
-                echo "Línea: " . $e->getLine() . "\n\n";
-                echo "Trace:\n" . htmlspecialchars($e->getTraceAsString());
-                echo "</pre>";
-                exit;
-            }
+            error_log("Error en generatePDF (ID: $id): " . $e->getMessage());
             
             $_SESSION['error'] = 'Error al generar PDF: ' . $e->getMessage();
             $this->redirect('expertise');

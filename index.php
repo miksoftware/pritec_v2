@@ -131,6 +131,7 @@ $router->get('/expertise/step11', 'ExpertiseController@step11');
 $router->post('/expertise/save-step11', 'ExpertiseController@saveStep11');
 $router->get('/expertise/step12', 'ExpertiseController@step12');
 $router->post('/expertise/save-final', 'ExpertiseController@saveFinal');
+$router->post('/expertise/delete/{id}', 'ExpertiseController@delete');
 
 // Procesar la ruta actual
 $router->dispatch();

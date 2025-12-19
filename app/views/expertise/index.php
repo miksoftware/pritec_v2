@@ -111,11 +111,21 @@ if (!function_exists('renderIndexView')) {
                                title="Ver resumen completo">
                                 <i class="fas fa-clipboard-list"></i>
                             </a>
-                            <a href="<?= APP_URL ?>expertise/edit/<?= $peritaje['id'] ?>/<?= $peritaje['current_step'] ?>" 
-                               class="btn btn-outline-secondary"
-                               title="Continuar en paso <?= $peritaje['current_step'] ?>">
+                            <?php 
+                            // Determinar el paso correcto para continuar
+                            $nextStep = max(2, $peritaje['current_step']);
+                            ?>
+                            <a href="<?= APP_URL ?>expertise/edit/<?= $peritaje['id'] ?>/<?= $nextStep ?>" 
+                               class="btn btn-outline-primary"
+                               title="Continuar en paso <?= $nextStep ?>">
                                 <i class="fas fa-play"></i>
                             </a>
+                            <button type="button" 
+                                    class="btn btn-outline-danger"
+                                    onclick="deleteDraft(<?= $peritaje['id'] ?>)"
+                                    title="Eliminar borrador">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -280,6 +290,60 @@ renderIndexView([
     'pagination' => $pagination ?? null,
     'custom_scripts' => '
     <script>
+    // Función para eliminar borrador
+    function deleteDraft(id) {
+        Swal.fire({
+            title: "¿Eliminar borrador?",
+            text: "Este peritaje en progreso será eliminado permanentemente.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`' . APP_URL . 'expertise/delete/${id}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        csrf_token: "' . ($csrf_token ?? '') . '"
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "¡Eliminado!",
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: data.message
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Error al eliminar el borrador"
+                    });
+                });
+            }
+        });
+    }
+    
     // Función para eliminar peritaje
     function deleteExpertise(id) {
         Swal.fire({

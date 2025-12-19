@@ -755,6 +755,8 @@ class Expertise extends Model {
             amortiguador_anterior_derecho = ?,
             amortiguador_posterior_izquierdo = ?,
             amortiguador_posterior_derecho = ?,
+            cant_amortiguadores_delanteros = ?,
+            cant_amortiguadores_traseros = ?,
             observaciones_amortiguadores = ?,
             current_step = 7,
             status = 'in_progress',
@@ -767,6 +769,8 @@ class Expertise extends Model {
             $data['amortiguador_anterior_derecho'] ?? 0,
             $data['amortiguador_posterior_izquierdo'] ?? 0,
             $data['amortiguador_posterior_derecho'] ?? 0,
+            $data['cant_amortiguadores_delanteros'] ?? 1,
+            $data['cant_amortiguadores_traseros'] ?? 1,
             $data['observaciones_amortiguadores'] ?? null,
             $id
         ]);
